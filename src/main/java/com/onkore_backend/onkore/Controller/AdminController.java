@@ -1,7 +1,7 @@
 package com.onkore_backend.onkore.Controller;
 
 
-import com.onkore_backend.onkore.Service.Authentification.GetAuthentificationServices;
+import com.onkore_backend.onkore.Service.Authentification.PostAuthentificationServices;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +13,7 @@ import java.util.Map;
 public class AdminController {
 
     @Autowired
-    private GetAuthentificationServices getAuthServices;
+    private PostAuthentificationServices getAuthServices;
 
     @PostMapping("register-admin")
     public String RegisterAdmin(@RequestBody Map<String, String> body) {
@@ -30,6 +30,16 @@ public class AdminController {
         try {
             getAuthServices.LoginAdmin(body.get("email"), body.get("password"), response);
             return "Admin logged in successfully";
+        } catch (Exception e) {
+            return e.getMessage();
+        }
+    }
+
+    @PostMapping("logout-admin")
+    public String LoginAdmin(HttpServletResponse response) {
+        try {
+            getAuthServices.LogoutAdmin(response);
+            return "Admin logged out successfully";
         } catch (Exception e) {
             return e.getMessage();
         }

@@ -33,4 +33,14 @@ public class JsonWebToken {
 
         response.addCookie(jwtCookie);
     }
+
+    public static void deleteJwtCookie(HttpServletResponse response) {
+        Cookie jwtCookie = new Cookie("jwt_auth_token", null);
+        jwtCookie.setHttpOnly(true);
+        jwtCookie.setSecure(true);
+        jwtCookie.setPath("/");
+        jwtCookie.setMaxAge(0);
+
+        response.addCookie(jwtCookie);
+    }
 }

@@ -15,7 +15,9 @@ public class Current_Course {
     private String description;
     private String username;
     private Integer price;
-    private String weekday;
+    private String[] topics;
+    //      private PDFs[] materials;
+
 
     @DBRef
     private List<Lesson_Dates> lessonDates;
@@ -36,8 +38,8 @@ public class Current_Course {
     public void setPrice(Integer price) {this.price = price;}
     public Integer getPrice() {return price;}
 
-    public void setWeekday(String weekday) {this.weekday = weekday;}
-    public String getWeekday() {return weekday;}
+    public void setTopics(String[] topics) {this.topics = topics;}
+    public String[] getTopics() {return topics;}
 
     public List<Lesson_Dates> getLessonDates() {return lessonDates;}
     public void setLessonDates(List<Lesson_Dates> lessonDates) {this.lessonDates = lessonDates;}

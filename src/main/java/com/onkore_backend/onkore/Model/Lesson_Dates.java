@@ -7,7 +7,7 @@ public class Lesson_Dates {
     private String id;
 
     private String lessonDate;
-    private Boolean accepted;
+    private String status;
 
 
     public void setId(String id) {this.id = id;}
@@ -16,6 +16,6 @@ public class Lesson_Dates {
     public void setLessonDate(String lessonDate) {this.lessonDate = lessonDate;}
     public String getLessonDate() {return lessonDate;}
 
-    public void setAccepted(Boolean accepted) {this.accepted = accepted;}
-    public Boolean getAccepted() {return accepted;}
+    public void setStatus(String status) {this.status = status;}
+    public String getStatus() {return status;}
 }
