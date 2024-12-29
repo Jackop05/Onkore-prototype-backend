@@ -1,6 +1,8 @@
 package com.onkore_backend.onkore.Controller;
 
 import com.onkore_backend.onkore.Service.Authentification.PostAuthentificationServices;
+import com.onkore_backend.onkore.Service.Data.GetServices;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletResponse;
@@ -42,5 +44,10 @@ public class UserController {
         } catch (Exception e) {
             return e.getMessage();
         }
+    }
+
+    @GetMapping("/get-user-data")
+    public Map getUserData(HttpServletRequest request) {
+        return GetServices.getUserData(request);
     }
 }

@@ -54,7 +54,7 @@ public class PostAuthentificationServices {
             throw new RuntimeException("Invalid password");
         }
 
-        String token = JsonWebToken.generateToken(user.getUsername(), user.getEmail(), "user");
+        String token = JsonWebToken.generateUserToken(user.getId(), user.getUsername(), user.getEmail(), user.getCurrentCourses(), "user");
         JsonWebToken.setJwtCookie(response, token);
 
         return null;
@@ -94,7 +94,7 @@ public class PostAuthentificationServices {
             throw new RuntimeException("Invalid password");
         }
 
-        String token = JsonWebToken.generateToken(admin.getUsername(), admin.getEmail(), "admin");
+        String token = JsonWebToken.generateAdminToken(admin.getId(), admin.getUsername(), admin.getEmail(), admin.getDescription(), admin.getContact(), admin.getAvailability(), admin.getCurrentCourses(), admin.getNewCourses(), "admin");
         JsonWebToken.setJwtCookie(response, token);
 
         return null;
@@ -106,13 +106,5 @@ public class PostAuthentificationServices {
 
     public void LogoutAdmin(HttpServletResponse response) {
         JsonWebToken.deleteJwtCookie(response);
-    }
-
-
-
-
-
-    public void CheckPromoCode(Discount_Code code, User user) {
-        // Logic to check if there is a discount code available at current time in database and if given user can use this code
     }
 }
