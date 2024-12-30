@@ -1,15 +1,23 @@
 package com.onkore_backend.onkore.Service.Data;
 
+import com.onkore_backend.onkore.Repository.SubjectCourseRepository;
+import com.onkore_backend.onkore.Model.Subject_Course;
 import io.jsonwebtoken.Claims;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.onkore_backend.onkore.Util.JsonWebToken.getTokenDataFromCookie;
 
+@Service
 public class GetServices {
+
+    @Autowired
+    private SubjectCourseRepository subjectCourseRepository;
 
     public static Map<String, Object> getUserData(HttpServletRequest request) {
         Claims claims = getTokenDataFromCookie(request);
@@ -47,27 +55,17 @@ public class GetServices {
         }
     }
 
-    public void getAdminData() {
-        // Logic to fetch admin data
-    }
-
-    public static void getUserData() {
-        // Logic to fetch user data
-    }
-
     public void getNewCoursesData() {
         // Logic to fetch new courses data
     }
 
-    public void getUserCourseData() {
-        // Logic to fetch user-course data
+
+    public List<Subject_Course> getSubjectCoursesData() {
+        return subjectCourseRepository.findAll();
     }
 
-    public void getSubjectCoursesData() {
-        // Logic to fetch subject-specific course data
-    }
 
     public void getAvailableDates() {
-        // Logic to fetch available dates
+
     }
 }

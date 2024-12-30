@@ -1,12 +1,17 @@
 package com.onkore_backend.onkore.Controller;
 
-import com.onkore_backend.onkore.Service.Authentification.PostAuthentificationServices;
+import com.onkore_backend.onkore.Service.Authentification.AuthentificationServices;
 import com.onkore_backend.onkore.Service.Data.GetServices;
+import com.onkore_backend.onkore.Service.Data.PostServices;
+import com.onkore_backend.onkore.Util.JsonFormatter;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletResponse;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -14,7 +19,13 @@ import java.util.Map;
 public class UserController {
 
     @Autowired
-    private PostAuthentificationServices getAuthServices;
+    private AuthentificationServices getAuthServices;
+
+    @Autowired
+    private GetServices getServices;
+
+    @Autowired
+    private PostServices postServices;
 
     @PostMapping("/register-user")
     public String registerUser(@RequestBody Map<String, String> body) {
@@ -48,6 +59,29 @@ public class UserController {
 
     @GetMapping("/get-user-data")
     public Map getUserData(HttpServletRequest request) {
-        return GetServices.getUserData(request);
+        return getServices.getUserData(request);
+    }
+
+    @PostMapping("/post-course")
+    public String postCourse(@RequestBody Map<String, String> body) {
+        try {
+            String userId = body.get("userId");
+            String courseId = body.get("courseId");
+            String datesString = body.get("dates");
+
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            List<Date> dateList = JsonFormatter.convertStringToList(datesString, dateStr -> {
+                try {
+                    return dateFormat.parse(dateStr);
+                } catch (Exception e) {
+                    throw new RuntimeException("Invalid date format: " + dateStr);
+                }
+            });
+
+            postServices.postCourse(userId, courseId, dateList);
+            return "Course posted successfully";
+        } catch (Exception e) {
+            return e.getMessage();
+        }
     }
 }

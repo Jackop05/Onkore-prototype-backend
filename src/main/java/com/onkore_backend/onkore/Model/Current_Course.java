@@ -4,6 +4,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Document(collection = "current_courses")
@@ -13,10 +14,11 @@ public class Current_Course {
 
     private String subject;
     private String description;
+    private String level;
     private String username;
     private Integer price;
-    private String[] topics;
-    //      private PDFs[] materials;
+    private Integer iconIndex;
+    private ArrayList<String> topics;
 
 
     @DBRef
@@ -32,14 +34,20 @@ public class Current_Course {
     public void setDescription(String description) {this.description = description;}
     public String getDescription() {return description;}
 
+    public void setLevel(String level) {this.level = level;}
+    public String getLevel() {return level;}
+
     public void setUsername(String username) {this.username = username;}
     public String getUsername() {return username;}
 
     public void setPrice(Integer price) {this.price = price;}
     public Integer getPrice() {return price;}
 
-    public void setTopics(String[] topics) {this.topics = topics;}
-    public String[] getTopics() {return topics;}
+    public void setIconIndex(Integer iconIndex) {this.iconIndex = iconIndex;}
+    public Integer getIconIndex() {return iconIndex;}
+
+    public void setTopics(ArrayList<String> topics) {this.topics = topics;}
+    public ArrayList<String> getTopics() {return topics;}
 
     public List<Lesson_Dates> getLessonDates() {return lessonDates;}
     public void setLessonDates(List<Lesson_Dates> lessonDates) {this.lessonDates = lessonDates;}

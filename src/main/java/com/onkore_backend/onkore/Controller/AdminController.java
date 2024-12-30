@@ -1,13 +1,19 @@
 package com.onkore_backend.onkore.Controller;
 
 
-import com.onkore_backend.onkore.Service.Authentification.PostAuthentificationServices;
+import com.onkore_backend.onkore.Service.Authentification.AuthentificationServices;
 import com.onkore_backend.onkore.Service.Data.GetServices;
+import com.onkore_backend.onkore.Service.Data.PutServices;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.core.Local;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 @RestController
@@ -15,7 +21,10 @@ import java.util.Map;
 public class AdminController {
 
     @Autowired
-    private PostAuthentificationServices getAuthServices;
+    private AuthentificationServices getAuthServices;
+
+    @Autowired
+    private PutServices putServices;
 
     @PostMapping("/register-admin")
     public String RegisterAdmin(@RequestBody Map<String, String> body) {
@@ -50,5 +59,19 @@ public class AdminController {
     @GetMapping("/get-admin-data")
     public Map getUserData(HttpServletRequest request) {
         return GetServices.getAdminData(request);
+    }
+
+    @PutMapping("/post-availability")
+    public String postAvailability(@RequestBody Map<String, String> body) {
+        try {
+            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+            LocalTime startHour = LocalTime.parse(body.get("startHour"), timeFormatter);
+            LocalTime endHour = LocalTime.parse(body.get("endHour"), timeFormatter);
+
+            putServices.putAvailability(body.get("admin_id"), startHour, endHour, body.get("weekday"));
+            return "Availability posted successfully";
+        } catch (Exception e) {
+            return e.getMessage();
+        }
     }
 }

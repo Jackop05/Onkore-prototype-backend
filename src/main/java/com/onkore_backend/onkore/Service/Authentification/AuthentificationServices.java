@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 
 @Service
-public class PostAuthentificationServices {
+public class AuthentificationServices {
 
     @Autowired
     private UserRepository userRepository;
