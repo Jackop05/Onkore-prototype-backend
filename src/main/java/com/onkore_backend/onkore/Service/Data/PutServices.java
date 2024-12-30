@@ -2,13 +2,17 @@ package com.onkore_backend.onkore.Service.Data;
 
 import com.onkore_backend.onkore.Model.Admin;
 import com.onkore_backend.onkore.Model.Availability;
+import com.onkore_backend.onkore.Model.Current_Course;
 import com.onkore_backend.onkore.Repository.AdminRepository;
 import com.onkore_backend.onkore.Repository.AvailabilityRepository;
+import com.onkore_backend.onkore.Repository.CurrentCourseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -19,6 +23,9 @@ public class PutServices {
 
     @Autowired
     AvailabilityRepository availabilityRepository;
+
+    @Autowired
+    CurrentCourseRepository currentCourseRepository;
 
     public void putCanceledLesson(String lesson_id, String course_id) {}
 
@@ -44,7 +51,22 @@ public class PutServices {
         availabilityRepository.save(availability);
 
         admin.getAvailability().add(availability);
+        adminRepository.save(admin);
     }
 
-    public void putTopic(String course_id, String topicName) {}
+    public void putTopic(String course_id, String topicName) {
+        Current_Course currentCourse;
+        Optional optionalCurrentCourse = currentCourseRepository.findById(course_id);
+        if (optionalCurrentCourse.isPresent()) {
+            currentCourse = (Current_Course) optionalCurrentCourse.get();
+        } else {
+            throw new RuntimeException("Course not found");
+        }
+
+        ArrayList<String> newTopicList = currentCourse.getTopics();
+        newTopicList.add(topicName);
+
+        currentCourse.setTopics(newTopicList);
+        currentCourseRepository.save(currentCourse);
+    }
 }
