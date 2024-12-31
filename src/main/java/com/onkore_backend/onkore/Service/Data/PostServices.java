@@ -5,14 +5,11 @@ import com.onkore_backend.onkore.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.security.auth.Subject;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-
-import static org.springframework.data.mongodb.core.aggregation.DataTypeOperators.Type.typeOf;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class PostServices {
@@ -24,7 +21,7 @@ public class PostServices {
     private UserRepository userRepository;
 
     @Autowired
-    private AdminRepository AdminRepository;
+    private AdminRepository adminRepository;
 
     @Autowired
     private CurrentCourseRepository currentCourseRepository;
@@ -34,6 +31,9 @@ public class PostServices {
 
     @Autowired
     private DiscountCodeRepository DiscountCodeRepository;
+
+    @Autowired
+    private NewCourseRepository newCourseRepository;
 
     public void postDiscountCode(String codeName, Date beginsAt, Date expiresAt, Integer discountPercentage, Integer discountAmount, List<String> subjects, List<String> emails, String givenCodePassword, String authCodePassword) {
         Discount_Code newDiscountCode = new Discount_Code();
@@ -66,40 +66,110 @@ public class PostServices {
 
         Subject_Course subjectCourse;
         Optional optionalSubjectCourse = subjectCourseRepository.findById(subjectCourse_id);
-        if (optionalUser.isPresent()) {
+        if (optionalSubjectCourse.isPresent()) {
             subjectCourse = (Subject_Course) optionalSubjectCourse.get();
         } else {
             throw new RuntimeException("No course with given id found in database");
         }
 
+        New_Course newCourse = new New_Course();
+        newCourse.setUsername(user.getUsername());
+        newCourse.setDescription(subjectCourse.getDescription());
+        newCourse.setSubject(subjectCourse.getSubject());
+        newCourse.setLessonDates(new ArrayList<>());
 
+        List<Admin> availableAdmins = new ArrayList<>();
+
+        for (Admin admin : adminRepository.findAll()) {
+            boolean allDatesMatch = true;
+
+            for (Date lessonDate : givenLessonDates) {
+                boolean dateMatches = false;
+
+                for (Availability availability : admin.getAvailability()) {
+                    LocalDate localDate = lessonDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                    LocalTime lessonTime = lessonDate.toInstant().atZone(ZoneId.systemDefault()).toLocalTime();
+                    String weekday = localDate.getDayOfWeek().toString();
+
+                    if (availability.getWeekday().equalsIgnoreCase(weekday)
+                            && !lessonTime.isBefore(availability.getHourStart())
+                            && !lessonTime.isAfter(availability.getHourEnd())) {
+                        dateMatches = true;
+                        break;
+                    }
+                }
+
+                if (!dateMatches) {
+                    allDatesMatch = false;
+                    break;
+                }
+            }
+
+            if (allDatesMatch) {
+                availableAdmins.add(admin);
+            }
+        }
+
+        if (availableAdmins.isEmpty()) {
+            throw new RuntimeException("No available admins for the given lesson dates and times");
+        }
+
+        // Find admins with the least number of courses
+        int minCourseCount = availableAdmins.stream()
+                .mapToInt(admin -> admin.getNewCourses() == null ? 0 : admin.getNewCourses().size())
+                .min()
+                .orElse(0);
+
+        List<Admin> leastBusyAdmins = availableAdmins.stream()
+                .filter(admin -> {
+                    if (admin.getNewCourses() == null) {
+                        admin.setNewCourses(new ArrayList<>()); // Initialize if null
+                    }
+                    return admin.getNewCourses().size() == minCourseCount;
+                })
+                .collect(Collectors.toList());
+
+        if (!leastBusyAdmins.isEmpty()) {
+            newCourse.setAdmins(leastBusyAdmins);
+
+            for (Date givenLessonDate : givenLessonDates) {
+                Lesson_Dates lessonDate = new Lesson_Dates();
+                lessonDate.setLessonDate(givenLessonDate);
+                lessonDate.setStatus(null);
+                lessonDatesRepository.save(lessonDate);
+
+                newCourse.getLessonDates().add(lessonDate);
+            }
+
+            // Save the new course
+            newCourseRepository.save(newCourse);
+
+            // Update each selected admin's newCourses list
+            for (Admin selectedAdmin : leastBusyAdmins) {
+                if (selectedAdmin.getNewCourses() == null) {
+                    selectedAdmin.setNewCourses(new ArrayList<>());
+                }
+                selectedAdmin.getNewCourses().add(newCourse);
+                adminRepository.save(selectedAdmin);
+            }
+        }
+
+        // Save the course to the user's current courses
         Current_Course currentCourse = new Current_Course();
         currentCourse.setSubject(subjectCourse.getSubject());
         currentCourse.setDescription(subjectCourse.getDescription());
         currentCourse.setLevel(subjectCourse.getLevel());
         currentCourse.setPrice(subjectCourse.getPrice());
-        currentCourse.setTopics(new ArrayList<String>());
+        currentCourse.setTopics(new ArrayList<>());
         currentCourse.setIconIndex(subjectCourse.getIconIndex());
         currentCourse.setUsername(user.getUsername());
 
-        if (currentCourse.getLessonDates() == null) {
-            currentCourse.setLessonDates(new ArrayList<>());
-        }
-        for (Date givenLessonDate : givenLessonDates) {
-            Lesson_Dates lessonDate = new Lesson_Dates();
-            lessonDate.setLessonDate(givenLessonDate);
-            lessonDate.setStatus(null);
-            lessonDatesRepository.save(lessonDate);
-
-            currentCourse.getLessonDates().add(lessonDate);
-        }
-
         currentCourseRepository.save(currentCourse);
 
+        if (user.getCurrentCourses() == null) {
+            user.setCurrentCourses(new ArrayList<>());
+        }
         user.getCurrentCourses().add(currentCourse);
         userRepository.save(user);
-
-
-        // !!! Teachers newCourse logic yet to implement here !!!
     }
 }

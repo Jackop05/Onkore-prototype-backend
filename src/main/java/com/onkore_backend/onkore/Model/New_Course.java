@@ -18,6 +18,9 @@ public class New_Course {
     @DBRef
     private List<Admin> admins;
 
+    @DBRef
+    private List<Lesson_Dates> lessonDates;
+
 
     public void setId(String id) {this.id = id;}
     public String getId() {return id;}
@@ -33,4 +36,7 @@ public class New_Course {
 
     public void setAdmins(List<Admin> admins) {this.admins = admins;}
     public List<Admin> getAdmins() {return admins;}
+
+    public List<Lesson_Dates> getLessonDates() {return lessonDates;}
+    public void setLessonDates(List<Lesson_Dates> lessonDates) {this.lessonDates = lessonDates;}
 }

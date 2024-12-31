@@ -69,7 +69,7 @@ public class UserController {
             String courseId = body.get("courseId");
             String datesString = body.get("dates");
 
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm");
             List<Date> dateList = JsonFormatter.convertStringToList(datesString, dateStr -> {
                 try {
                     return dateFormat.parse(dateStr);
