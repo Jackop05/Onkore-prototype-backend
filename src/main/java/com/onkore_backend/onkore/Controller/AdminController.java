@@ -7,11 +7,8 @@ import com.onkore_backend.onkore.Service.Data.PutServices;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
 import org.springframework.web.bind.annotation.*;
 
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
@@ -25,6 +22,9 @@ public class AdminController {
 
     @Autowired
     private PutServices putServices;
+
+    @Autowired
+    private GetServices getServices;
 
     @PostMapping("/register-admin")
     public String RegisterAdmin(@RequestBody Map<String, String> body) {
@@ -58,7 +58,7 @@ public class AdminController {
 
     @GetMapping("/get-admin-data")
     public Map getUserData(HttpServletRequest request) {
-        return GetServices.getAdminData(request);
+        return getServices.getAdminData(request);
     }
 
     @PutMapping("/post-availability")
@@ -70,6 +70,25 @@ public class AdminController {
 
             putServices.putAvailability(body.get("admin_id"), startHour, endHour, body.get("weekday"));
             return "Availability posted successfully";
+        } catch (Exception e) {
+            return e.getMessage();
+        }
+    }
+
+    @GetMapping("get-full-availability")
+    public Map getFullAvailability(HttpServletResponse response) {
+        return getServices.getAllAvailableDates();
+    }
+
+    @GetMapping("get-availability")
+    public Map getAvailability(HttpServletResponse response) {
+        return getServices.getReducedAvailableDates();
+    }
+
+    @PutMapping("put-lesson-status")
+    public String putLessonStatus(@RequestBody Map<String, String> body) {
+        try {
+            return putServices.putLessonStatus(body.get("course_id"), body.get("lesson_id"), body.get("status"));
         } catch (Exception e) {
             return e.getMessage();
         }

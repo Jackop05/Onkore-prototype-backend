@@ -20,7 +20,6 @@ public class Current_Course {
     private Integer iconIndex;
     private ArrayList<String> topics;
 
-
     @DBRef
     private List<Lesson_Dates> lessonDates;
 
@@ -49,6 +48,6 @@ public class Current_Course {
     public void setTopics(ArrayList<String> topics) {this.topics = topics;}
     public ArrayList<String> getTopics() {return topics;}
 
-    public List<Lesson_Dates> getLessonDates() {return lessonDates;}
     public void setLessonDates(List<Lesson_Dates> lessonDates) {this.lessonDates = lessonDates;}
+    public List<Lesson_Dates> getLessonDates() {return lessonDates;}
 }

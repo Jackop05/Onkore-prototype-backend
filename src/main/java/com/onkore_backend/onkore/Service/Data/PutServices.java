@@ -3,16 +3,16 @@ package com.onkore_backend.onkore.Service.Data;
 import com.onkore_backend.onkore.Model.Admin;
 import com.onkore_backend.onkore.Model.Availability;
 import com.onkore_backend.onkore.Model.Current_Course;
+import com.onkore_backend.onkore.Model.Lesson_Dates;
 import com.onkore_backend.onkore.Repository.AdminRepository;
 import com.onkore_backend.onkore.Repository.AvailabilityRepository;
 import com.onkore_backend.onkore.Repository.CurrentCourseRepository;
+import com.onkore_backend.onkore.Repository.LessonDatesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -26,12 +26,38 @@ public class PutServices {
 
     @Autowired
     CurrentCourseRepository currentCourseRepository;
+    @Autowired
+    private LessonDatesRepository lessonDatesRepository;
 
-    public void putCanceledLesson(String lesson_id, String course_id) {}
+    public String putLessonStatus(String course_id, String lesson_id, String status) {
+        if (!status.equals("accepted") && !status.equals("rejected") && !status.equals("canceled") && !status.equals("running now") && !status.equals("done") ) {
+            throw new IllegalArgumentException("Invalid status name");
+        }
 
-    public void putAcceptedLesson(String course_id) {}
+        Current_Course currentCourse;
+        Optional<Current_Course> courseOptional = currentCourseRepository.findById(course_id);
+        if (!courseOptional.isPresent()) {
+            throw new IllegalArgumentException("Course with ID " + course_id + " not found.");
+        }
 
-    public void putNotAcceptedLesson(String course_id) {}
+        Boolean lessonFound = false;
+        currentCourse = courseOptional.get();
+        for (Lesson_Dates lesson : currentCourse.getLessonDates()) {
+            if (lesson.getId().equals(lesson_id)) {
+                lesson.setStatus(status);
+                lessonDatesRepository.save(lesson);
+
+                lessonFound = true;
+                break;
+            }
+        }
+
+        if (!lessonFound) {
+            throw new IllegalArgumentException("Lesson with ID " + lesson_id + " not found.");
+        }
+
+        return "Lesson's status changed to canceled";
+    }
 
     // public void putMaterial(String course_id, String material) {}   // this one has to be improved, but I don't know how ot implement files transfer yet
 

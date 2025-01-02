@@ -114,7 +114,6 @@ public class PostServices {
             throw new RuntimeException("No available admins for the given lesson dates and times");
         }
 
-        // Find admins with the least number of courses
         int minCourseCount = availableAdmins.stream()
                 .mapToInt(admin -> admin.getNewCourses() == null ? 0 : admin.getNewCourses().size())
                 .min()
@@ -123,7 +122,7 @@ public class PostServices {
         List<Admin> leastBusyAdmins = availableAdmins.stream()
                 .filter(admin -> {
                     if (admin.getNewCourses() == null) {
-                        admin.setNewCourses(new ArrayList<>()); // Initialize if null
+                        admin.setNewCourses(new ArrayList<>());
                     }
                     return admin.getNewCourses().size() == minCourseCount;
                 })
@@ -132,19 +131,19 @@ public class PostServices {
         if (!leastBusyAdmins.isEmpty()) {
             newCourse.setAdmins(leastBusyAdmins);
 
+            List<Lesson_Dates> newLessonDates = new ArrayList<Lesson_Dates>();
             for (Date givenLessonDate : givenLessonDates) {
                 Lesson_Dates lessonDate = new Lesson_Dates();
                 lessonDate.setLessonDate(givenLessonDate);
-                lessonDate.setStatus(null);
+                lessonDate.setStatus("");
                 lessonDatesRepository.save(lessonDate);
 
-                newCourse.getLessonDates().add(lessonDate);
+                newLessonDates.add(lessonDate);
             }
 
-            // Save the new course
+            newCourse.setLessonDates(newLessonDates);
             newCourseRepository.save(newCourse);
 
-            // Update each selected admin's newCourses list
             for (Admin selectedAdmin : leastBusyAdmins) {
                 if (selectedAdmin.getNewCourses() == null) {
                     selectedAdmin.setNewCourses(new ArrayList<>());
@@ -152,24 +151,26 @@ public class PostServices {
                 selectedAdmin.getNewCourses().add(newCourse);
                 adminRepository.save(selectedAdmin);
             }
+
+            Current_Course currentCourse = new Current_Course();
+            currentCourse.setSubject(subjectCourse.getSubject());
+            currentCourse.setDescription(subjectCourse.getDescription());
+            currentCourse.setLevel(subjectCourse.getLevel());
+            currentCourse.setPrice(subjectCourse.getPrice());
+            currentCourse.setTopics(new ArrayList<>());
+            currentCourse.setIconIndex(subjectCourse.getIconIndex());
+            currentCourse.setUsername(user.getUsername());
+            currentCourse.setLessonDates(newLessonDates);
+
+            currentCourseRepository.save(currentCourse);
+
+            if (user.getCurrentCourses() == null) {
+                user.setCurrentCourses(new ArrayList<>());
+            }
+            user.getCurrentCourses().add(currentCourse);
+            userRepository.save(user);
         }
-
-        // Save the course to the user's current courses
-        Current_Course currentCourse = new Current_Course();
-        currentCourse.setSubject(subjectCourse.getSubject());
-        currentCourse.setDescription(subjectCourse.getDescription());
-        currentCourse.setLevel(subjectCourse.getLevel());
-        currentCourse.setPrice(subjectCourse.getPrice());
-        currentCourse.setTopics(new ArrayList<>());
-        currentCourse.setIconIndex(subjectCourse.getIconIndex());
-        currentCourse.setUsername(user.getUsername());
-
-        currentCourseRepository.save(currentCourse);
-
-        if (user.getCurrentCourses() == null) {
-            user.setCurrentCourses(new ArrayList<>());
-        }
-        user.getCurrentCourses().add(currentCourse);
-        userRepository.save(user);
     }
+
+    // Remove course from new courses and add it to the new courses OR just remove it and check if there is available place in other teachers
 }

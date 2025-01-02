@@ -65,8 +65,8 @@ public class UserController {
     @PostMapping("/post-course")
     public String postCourse(@RequestBody Map<String, String> body) {
         try {
-            String userId = body.get("userId");
-            String courseId = body.get("courseId");
+            String userId = body.get("user_id");
+            String courseId = body.get("course_id");
             String datesString = body.get("dates");
 
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm");

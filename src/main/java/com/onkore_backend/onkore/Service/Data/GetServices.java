@@ -64,45 +64,66 @@ public class GetServices {
     }
 
     public Map<String, List<List<LocalTime>>> getAllAvailableDates() {
-        Map<String, List> availableDates = new HashMap<>();
-        availableDates.put("Monday", new ArrayList<>());
-        availableDates.put("Tuesday", new ArrayList<>());
-        availableDates.put("Wednesday", new ArrayList<>());
-        availableDates.put("Thursday", new ArrayList<>());
-        availableDates.put("Friday", new ArrayList<>());
-        availableDates.put("Saturday", new ArrayList<>());
-        availableDates.put("Sunday", new ArrayList<>());
+        Map<String, List<List<LocalTime>>> availableDates = new HashMap<>();
+        availableDates.put("Monday", new ArrayList<List<LocalTime>>());
+        availableDates.put("Tuesday", new ArrayList<List<LocalTime>>());
+        availableDates.put("Wednesday", new ArrayList<List<LocalTime>>());
+        availableDates.put("Thursday", new ArrayList<List<LocalTime>>());
+        availableDates.put("Friday", new ArrayList<List<LocalTime>>());
+        availableDates.put("Saturday", new ArrayList<List<LocalTime>>());
+        availableDates.put("Sunday", new ArrayList<List<LocalTime>>());
 
         List<Availability> availabilities = availabilityRepository.findAll();
-
-        Map<String, List<List<LocalTime>>> availabilityMap = new HashMap<>();
 
         for (Availability availability : availabilities) {
             String weekday = availability.getWeekday();
             LocalTime start = availability.getHourStart();
             LocalTime end = availability.getHourEnd();
 
-            List<LocalTime> availabilityBlock = new ArrayList<LocalTime>();
+            List<LocalTime> availabilityBlock = new ArrayList<>();
             availabilityBlock.add(start);
             availabilityBlock.add(end);
-            availabilityMap.get(weekday).add(availabilityBlock);
+            availableDates.get(weekday).add(availabilityBlock);
         }
-
-        return availabilityMap;
-    }
-
-    public Map<String, List<List<LocalTime>>> getRedusedAvailableDates() {
-        Map<String, List<List<LocalTime>>> allAvailableDates = getAllAvailableDates();
 
         Sorters sorter = new Sorters();
-        for (String weekday : allAvailableDates.keySet()) {
-            sorter.sortLocalTimeArray(allAvailableDates.get(weekday));
+        for (String weekday : availableDates.keySet()) {
+            sorter.sortLocalTimeArray(availableDates.get(weekday));
         }
 
+        return availableDates;
+    }
+
+    public Map<String, List<List<LocalTime>>> getReducedAvailableDates() {
+        Map<String, List<List<LocalTime>>> allAvailableDates = getAllAvailableDates();
+
         for (String weekday : allAvailableDates.keySet()) {
-            // Yet to finish here!!!
+            List<List<LocalTime>> dates = allAvailableDates.get(weekday);
+            for (int i = 0; i < dates.size() - 1; i++) {
+                List<LocalTime> currentDate = dates.get(i);
+                List<LocalTime> nextDate = dates.get(i + 1);
+
+                LocalTime startOfCurrentDate = currentDate.get(0);
+                LocalTime endOfCurrentDate = currentDate.get(1);
+                LocalTime startOfNextDate = nextDate.get(0);
+                LocalTime endOfNextDate = nextDate.get(1);
+
+                if (!endOfCurrentDate.isBefore(startOfNextDate)) {
+                    dates.remove(i + 1);
+
+                    if (!endOfCurrentDate.isBefore(endOfNextDate)) {
+                        i -= 2;
+                    } else {
+                        List<LocalTime> tempDates = Arrays.asList(startOfCurrentDate, endOfNextDate);
+                        dates.set(i,  tempDates);
+                        i -= 1;
+                    }
+                }
+            }
+
+            allAvailableDates.put(weekday, dates);
         }
 
-        // And yet to finish here!!!
+        return allAvailableDates;
     }
 }
