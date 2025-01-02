@@ -104,7 +104,7 @@ public class PostServices {
                 adminRepository.save(selectedAdmin);
             }
 
-            Current_Course currentCourse = getCurrentCourseFromNewCourse(newCourse, user.getUsername());
+            Current_Course currentCourse = getCurrentCourseFromNewCourse(subjectCourse, newCourse, user.getUsername());
             currentCourseRepository.save(currentCourse);
 
             if (user.getCurrentCourses() == null) {
@@ -169,7 +169,7 @@ public class PostServices {
             return "Course rejected successfully";
 
         } else if (action == "accept") {
-            Current_Course currentCourse = getCurrentCourseFromNewCourse(newCourse, newCourse.getUsername());
+            Current_Course currentCourse = getCurrentCourseFromNewCourse(newCourse.getSubjectCourse(), newCourse, newCourse.getUsername());
             currentCourseRepository.save(currentCourse);
 
             admin.getCurrentCourses().add(currentCourse);
@@ -186,9 +186,7 @@ public class PostServices {
         return null;
     }
 
-    private static Current_Course getCurrentCourseFromNewCourse(New_Course newCourse, String username) {
-        Subject_Course subjectCourse = newCourse.getSubjectCourse();
-
+    private static Current_Course getCurrentCourseFromNewCourse(Subject_Course subjectCourse, New_Course newCourse, String username) {
         Current_Course currentCourse = new Current_Course();
         currentCourse.setSubject(subjectCourse.getSubject());
         currentCourse.setDescription(subjectCourse.getDescription());

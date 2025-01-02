@@ -1,5 +1,6 @@
 package com.onkore_backend.onkore.Util;
 
+import com.onkore_backend.onkore.Model.*;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -7,8 +8,13 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class JsonWebToken {
     private static final String SECRET_KEY = "SecretKeyWithMoreLettersAndMoreWordsIncluded123456789";
@@ -28,7 +34,42 @@ public class JsonWebToken {
                 .compact();
     }
 
-    public static String generateAdminToken(String id, String username, String email, String description, String contact, List availability, List currentCourses, List newCourses, String role) {
+    public static String generateAdminToken(String id, String username, String email, String description, String contact, List<Availability> availability, List<Current_Course> currentCourses, List<New_Course> newCourses, String role) {
+        List<Map<String, String>> serializedAvailability = availability.stream()
+                .map(item -> Map.of(
+                        "id", item.getId(),
+                        "weekday", item.getWeekday(),
+                        "hourStart", item.getHourStart().toString(),
+                        "hourEnd", item.getHourEnd().toString()
+                ))
+                .collect(Collectors.toList());
+
+        List<Map<String, Object>> serializedCurrentCourses = currentCourses.stream()
+                .map(item -> Map.of(
+                        "id", item.getId(),
+                        "subject", item.getSubject(),
+                        "description", item.getDescription(),
+                        "level", item.getLevel(),
+                        "username", item.getUsername(),
+                        "price", item.getPrice(),
+                        "iconIndex", item.getIconIndex(),
+                        "topics", item.getTopics(),
+                        "subjectCourse", serializeSubjectCourseToString(item.getSubjectCourse()),
+                        "lessonDates", serializeLessonDatesToString(item.getLessonDates())
+                        ))
+                .collect(Collectors.toList());
+
+        List<Map<String, Object>> serializedNewCourses = newCourses.stream()
+                .map(item -> Map.of(
+                        "id", item.getId(),
+                        "username", item.getUsername(),
+                        "description", item.getDescription(),
+                        "subject", item.getSubject(),
+                        "subjectCourse", serializeSubjectCourseToString(item.getSubjectCourse()),
+                        "lessonDates", serializeLessonDatesToString(item.getLessonDates())
+                ))
+                .collect(Collectors.toList());
+
         return Jwts.builder()
                 .setSubject(username)
                 .claim("id", id)
@@ -36,9 +77,9 @@ public class JsonWebToken {
                 .claim("email", email)
                 .claim("contact", contact)
                 .claim("description", description)
-                .claim("availability", availability)
-                .claim("currentCourses", currentCourses)
-                .claim("newCourses", newCourses)
+                .claim("availability", serializedAvailability)
+                .claim("currentCourses", serializedCurrentCourses)
+                .claim("newCourses", serializedNewCourses)
                 .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
@@ -98,5 +139,29 @@ public class JsonWebToken {
         jwtCookie.setMaxAge(0);
 
         response.addCookie(jwtCookie);
+    }
+
+    private static List<Map<String, Object>> serializeLessonDatesToString(List<Lesson_Dates> lessonDates) {
+        SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd-HH:mm");
+        return lessonDates.stream()
+                .map(lessonDate -> {
+                    Map<String, Object> serialized = new HashMap<>();
+                    serialized.put("id", lessonDate.getId());
+                    serialized.put("lessonDate", dateFormatter.format(lessonDate.getLessonDate()));
+                    serialized.put("status", lessonDate.getStatus());
+                    return serialized;
+                })
+                .collect(Collectors.toList());
+    }
+
+    private static Map<String, Object> serializeSubjectCourseToString(Subject_Course subjectCourse) {
+        Map<String, Object> serialized = new HashMap<>();
+        serialized.put("id", subjectCourse.getId());
+        serialized.put("subject", subjectCourse.getSubject());
+        serialized.put("level", subjectCourse.getLevel());
+        serialized.put("description", subjectCourse.getDescription());
+        serialized.put("price", subjectCourse.getPrice());
+        serialized.put("iconIndex", subjectCourse.getIconIndex());
+        return serialized;
     }
 }
