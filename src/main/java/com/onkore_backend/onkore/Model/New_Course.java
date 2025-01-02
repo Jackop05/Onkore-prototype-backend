@@ -16,6 +16,9 @@ public class New_Course {
     private String subject;
 
     @DBRef
+    private Subject_Course subjectCourse;
+
+    @DBRef
     private List<Admin> admins;
 
     @DBRef
@@ -33,6 +36,9 @@ public class New_Course {
 
     public void setSubject(String subject) {this.subject = subject;}
     public String getSubject() {return subject;}
+
+    public void setSubject(Subject_Course subjectCourse) {this.subjectCourse = subjectCourse;}
+    public Subject_Course getSubjectCourse() {return subjectCourse;}
 
     public void setAdmins(List<Admin> admins) {this.admins = admins;}
     public List<Admin> getAdmins() {return admins;}

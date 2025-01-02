@@ -21,8 +21,10 @@ public class Current_Course {
     private ArrayList<String> topics;
 
     @DBRef
-    private List<Lesson_Dates> lessonDates;
+    private Subject_Course subjectCourse;
 
+    @DBRef
+    private List<Lesson_Dates> lessonDates;
 
     public void setId(String id) {this.id = id;}
     public String getId() {return id;}
@@ -47,6 +49,9 @@ public class Current_Course {
 
     public void setTopics(ArrayList<String> topics) {this.topics = topics;}
     public ArrayList<String> getTopics() {return topics;}
+
+    public void setSubjectCourse(Subject_Course subjectCourse) {this.subjectCourse = subjectCourse;}
+    public Subject_Course getSubjectCourse() {return subjectCourse;}
 
     public void setLessonDates(List<Lesson_Dates> lessonDates) {this.lessonDates = lessonDates;}
     public List<Lesson_Dates> getLessonDates() {return lessonDates;}
