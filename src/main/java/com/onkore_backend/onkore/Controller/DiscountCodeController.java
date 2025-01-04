@@ -1,12 +1,10 @@
 package com.onkore_backend.onkore.Controller;
 
+import com.onkore_backend.onkore.Service.Data.DeleteServices;
 import com.onkore_backend.onkore.Service.Data.PostServices;
 import com.onkore_backend.onkore.Util.JsonFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -19,6 +17,9 @@ public class DiscountCodeController {
 
     @Autowired
     PostServices postServices;
+
+    @Autowired
+    DeleteServices deleteServices;
 
     @PostMapping("/post-discount-code")
     public String postDiscountCode(@RequestBody Map<String, String> body) {
@@ -36,6 +37,15 @@ public class DiscountCodeController {
             return "Discount code posted successfully";
         } catch (Exception e) {
             return e.getMessage();
+        }
+    }
+
+    @DeleteMapping("/delete-discount-code")
+    public String deleteDiscountCode(@RequestBody Map<String, String> body) {
+        try {
+            return deleteServices.deleteDiscountCode(body.get("codeName"), body.get("givenCodePassword"), "Haslo_nie_do_zlamania");
+        } catch (Exception e) {
+            return  e.getMessage();
         }
     }
 }

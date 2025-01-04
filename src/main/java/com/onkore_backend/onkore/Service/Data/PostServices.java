@@ -77,9 +77,9 @@ public class PostServices {
         newCourse.setDescription(subjectCourse.getDescription());
         newCourse.setSubject(subjectCourse.getSubject());
         newCourse.setLessonDates(new ArrayList<>());
+        newCourse.setSubjectCourse(subjectCourse);
 
         List<Admin> leastBusyAdmins = getLeastBusyAdmins(givenLessonDates, 0);
-
         if (!leastBusyAdmins.isEmpty()) {
             newCourse.setAdmins(leastBusyAdmins);
 
@@ -92,8 +92,12 @@ public class PostServices {
 
                 newLessonDates.add(lessonDate);
             }
-
             newCourse.setLessonDates(newLessonDates);
+
+            Current_Course currentCourse = getCurrentCourseFromNewCourse(subjectCourse, newCourse, user.getUsername());
+            currentCourseRepository.save(currentCourse);
+
+            newCourse.setCurrentCourse(currentCourse);
             newCourseRepository.save(newCourse);
 
             for (Admin selectedAdmin : leastBusyAdmins) {
@@ -104,9 +108,6 @@ public class PostServices {
                 adminRepository.save(selectedAdmin);
             }
 
-            Current_Course currentCourse = getCurrentCourseFromNewCourse(subjectCourse, newCourse, user.getUsername());
-            currentCourseRepository.save(currentCourse);
-
             if (user.getCurrentCourses() == null) {
                 user.setCurrentCourses(new ArrayList<>());
             }
@@ -116,7 +117,7 @@ public class PostServices {
     }
 
     public String handleNewCourse(String course_id, String admin_id, String action) {
-        if (!action.equals("reject") && !action.equals("accept") ) {
+        if (!action.equals("rejected") && !action.equals("accepted") ) {
             throw new IllegalArgumentException("Invalid action name");
         }
 
@@ -132,13 +133,17 @@ public class PostServices {
         }
         Admin admin = (Admin) optionalAdmin.get();
 
-        if (admin.getNewCourses() == null || !admin.getNewCourses().contains(newCourse)) {
-            System.out.println("Admin doesn't contain given new_course");
+        Optional optionalCurrentCourse = currentCourseRepository.findById(newCourse.getCurrentCourse().getId());
+        if (!optionalCurrentCourse.isPresent()) {
+            throw new RuntimeException("No admin with given id found in database");
         }
+        Current_Course currentCourse = (Current_Course) optionalCurrentCourse.get();
+
+        // to implement here : check if new_course is in admins new_courses
 
         int numberOfAdmins = newCourse.getAdmins().size();
 
-        if (action == "rejected") {
+        if (action.equalsIgnoreCase("rejected")) {
             admin.getNewCourses().remove(newCourse);
             adminRepository.save(admin);
 
@@ -168,22 +173,33 @@ public class PostServices {
 
             return "Course rejected successfully";
 
-        } else if (action == "accept") {
-            Current_Course currentCourse = getCurrentCourseFromNewCourse(newCourse.getSubjectCourse(), newCourse, newCourse.getUsername());
-            currentCourseRepository.save(currentCourse);
+        } else if (action.equalsIgnoreCase("accepted")) {
 
-            admin.getCurrentCourses().add(currentCourse);
-            for (Admin selectedAdmins : newCourse.getAdmins()) {
-                selectedAdmins.getNewCourses().remove(newCourse);
-                adminRepository.save(selectedAdmins);
+                // Remove the new course from all associated admins
+                for (Admin selectedAdmin : newCourse.getAdmins()) {
+                    selectedAdmin.getNewCourses().remove(newCourse);
+                    adminRepository.save(selectedAdmin); // Save each admin explicitly
+                }
+
+                // Ensure the accepting admin's currentCourses list is initialized
+                if (admin.getCurrentCourses() == null) {
+                    admin.setCurrentCourses(new ArrayList<>());
+                }
+
+                // Add the current course to the accepting admin's currentCourses
+                admin.getCurrentCourses().add(currentCourse);
+
+                // Save the accepting admin
+                adminRepository.save(admin);
+
+                // Delete the new course
+                newCourseRepository.deleteById(course_id);
+
+                return "Course accepted and registered successfully";
             }
 
-            newCourseRepository.deleteById(course_id);
 
-            return "Course accepted and registered successfully";
-        }
-
-        return null;
+            return null;
     }
 
     private static Current_Course getCurrentCourseFromNewCourse(Subject_Course subjectCourse, New_Course newCourse, String username) {

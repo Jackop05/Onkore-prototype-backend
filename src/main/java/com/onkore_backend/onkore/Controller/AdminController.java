@@ -2,7 +2,9 @@ package com.onkore_backend.onkore.Controller;
 
 
 import com.onkore_backend.onkore.Service.Authentification.AuthentificationServices;
+import com.onkore_backend.onkore.Service.Data.DeleteServices;
 import com.onkore_backend.onkore.Service.Data.GetServices;
+import com.onkore_backend.onkore.Service.Data.PostServices;
 import com.onkore_backend.onkore.Service.Data.PutServices;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -25,6 +27,10 @@ public class AdminController {
 
     @Autowired
     private GetServices getServices;
+    @Autowired
+    private PostServices postServices;
+    @Autowired
+    private DeleteServices deleteServices;
 
     @PostMapping("/register-admin")
     public String RegisterAdmin(@RequestBody Map<String, String> body) {
@@ -75,21 +81,39 @@ public class AdminController {
         }
     }
 
-    @GetMapping("get-full-availability")
+    @GetMapping("/get-full-availability")
     public Map getFullAvailability(HttpServletResponse response) {
         return getServices.getAllAvailableDates();
     }
 
-    @GetMapping("get-availability")
+    @GetMapping("/get-availability")
     public Map getAvailability(HttpServletResponse response) {
         return getServices.getReducedAvailableDates();
     }
 
-    @PutMapping("put-lesson-status")
+    @PutMapping("/put-lesson-status")
     public String putLessonStatus(@RequestBody Map<String, String> body) {
         try {
             return putServices.putLessonStatus(body.get("course_id"), body.get("lesson_id"), body.get("status"));
         } catch (Exception e) {
+            return e.getMessage();
+        }
+    }
+
+    @PostMapping("/handle-new-course")
+    public String handleNewCourse(@RequestBody Map<String, String> body) {
+        try {
+            return postServices.handleNewCourse(body.get("course_id"), body.get("admin_id"), body.get("action"));
+        } catch(Exception e) {
+            return e.getMessage();
+        }
+    }
+
+    @DeleteMapping("/delete-availability")
+    public String deleteAvailability(@RequestBody Map<String, String> body) {
+        try {
+            return deleteServices.deleteAdminAvailability(body.get("admin_id"), body.get("availability_id"));
+        } catch(Exception e) {
             return e.getMessage();
         }
     }
