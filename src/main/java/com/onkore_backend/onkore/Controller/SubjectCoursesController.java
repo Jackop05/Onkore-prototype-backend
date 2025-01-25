@@ -6,6 +6,7 @@ import com.onkore_backend.onkore.Service.Data.GetServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -20,5 +21,12 @@ public class SubjectCoursesController {
     @GetMapping("/get-subject-courses")
     public List<Subject_Course> getSubjectCourses() {
         return getServices.getSubjectCoursesData();
+    }
+
+    @GetMapping("/available-days")
+    public List<String> getAvailableDays(
+            @RequestParam String courseId,
+            @RequestParam String hour) {
+        return getServices.getAvailableDays(courseId, hour);
     }
 }

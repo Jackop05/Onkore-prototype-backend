@@ -1,9 +1,12 @@
 package com.onkore_backend.onkore.Controller;
 
 import com.onkore_backend.onkore.Service.Data.DeleteServices;
+import com.onkore_backend.onkore.Service.Data.GetServices;
 import com.onkore_backend.onkore.Service.Data.PostServices;
 import com.onkore_backend.onkore.Util.JsonFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.SimpleDateFormat;
@@ -20,6 +23,25 @@ public class DiscountCodeController {
 
     @Autowired
     DeleteServices deleteServices;
+
+    @Autowired
+    GetServices getServices;
+
+    @GetMapping("/check-promo-code")
+    public ResponseEntity<String> checkPromoCode(
+            @RequestParam("email") String email,
+            @RequestParam("promoCode") String promoCode,
+            @RequestParam("subjectId") String subjectId) {
+        try {
+            if(getServices.checkPromoCode(promoCode, email, subjectId)) {
+                return ResponseEntity.ok("Promo code is valid");
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Promo code is invalid");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
+        }
+    }
 
     @PostMapping("/post-discount-code")
     public String postDiscountCode(@RequestBody Map<String, String> body) {

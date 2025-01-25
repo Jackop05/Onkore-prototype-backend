@@ -1,10 +1,15 @@
 package com.onkore_backend.onkore.Service.Data;
 
+import com.onkore_backend.onkore.Model.Admin;
 import com.onkore_backend.onkore.Model.Availability;
+import com.onkore_backend.onkore.Model.Discount_Code;
+import com.onkore_backend.onkore.Repository.AdminRepository;
 import com.onkore_backend.onkore.Repository.AvailabilityRepository;
+import com.onkore_backend.onkore.Repository.DiscountCodeRepository;
 import com.onkore_backend.onkore.Repository.SubjectCourseRepository;
 import com.onkore_backend.onkore.Model.Subject_Course;
 import com.onkore_backend.onkore.Util.Sorters;
+import com.onkore_backend.onkore.Util.TimeOperator;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.onkore_backend.onkore.Util.JsonWebToken.getTokenDataFromCookie;
 
@@ -20,8 +26,15 @@ public class GetServices {
 
     @Autowired
     private SubjectCourseRepository subjectCourseRepository;
+
     @Autowired
     private AvailabilityRepository availabilityRepository;
+
+    @Autowired
+    private AdminRepository adminRepository;
+
+    @Autowired
+    private DiscountCodeRepository discountCodeRepository;
 
     public static Map<String, Object> getUserData(HttpServletRequest request) {
         Claims claims = getTokenDataFromCookie(request);
@@ -125,5 +138,91 @@ public class GetServices {
         }
 
         return allAvailableDates;
+    }
+
+
+
+
+
+    public List<String> getAvailableDays(String courseId, String hour) {
+
+        String[] hours = hour.split("-");
+        if (hours.length != 2) {
+            throw new IllegalArgumentException("Invalid hour format. Expected 'HH:mm-HH:mm'");
+        }
+
+        LocalTime hourStart = LocalTime.parse(hours[0].trim());
+        LocalTime hourEnd = LocalTime.parse(hours[1].trim());
+
+        // Retrieve the course subject
+        Optional<Subject_Course> courseOptional = subjectCourseRepository.findById(courseId);
+        if (courseOptional.isEmpty()) {
+            throw new IllegalArgumentException("Course not found for the given courseId");
+        }
+        String courseSubject = courseOptional.get().getSubject();
+
+        // Retrieve all admins
+        List<Admin> admins = adminRepository.findAll();
+
+        // Filter admins based on availability and subject teaching
+        TimeOperator timeOperator = new TimeOperator();
+        List<Admin> availableAdmins = admins.stream()
+                .filter(admin -> admin.getSubjectTeachingList() != null
+                        && admin.getSubjectTeachingList().contains(courseSubject)) // Check subject
+                .filter(admin -> admin.getAvailability() != null
+                        && admin.getAvailability().stream().anyMatch(availability ->
+                        timeOperator.isTimeInRange(availability, hourStart, hourEnd))) // Check time range
+                .collect(Collectors.toList());
+
+
+
+        // Get the list of available weekdays from all matching admins
+        List<String> availableDays = availableAdmins.stream()
+                .flatMap(admin -> admin.getAvailability().stream()
+                        .filter(availability -> timeOperator.isTimeInRange(availability, hourStart, hourEnd))
+                        .map(Availability::getWeekday))
+                .distinct()
+                .collect(Collectors.toList());
+
+        return availableDays;
+    }
+
+    public boolean checkPromoCode(String promoCode, String email, String subjectId) {
+        Optional<Discount_Code> discountCodeOptional = discountCodeRepository.findByCode(promoCode);
+
+        if (discountCodeOptional.isEmpty()) {
+            // Promo code not found
+            return false;
+        }
+
+        Discount_Code discountCode = discountCodeOptional.get();
+
+        // Validate if the promo code is active
+        Date now = new Date();
+        if (discountCode.getBeginsAt().after(now) || discountCode.getExpiresAt().before(now)) {
+            return false;
+        }
+
+        // Validate if the promo code is applicable to the user's email or subjects
+        boolean isValidForUser = false;
+
+        // Check if the user's email is eligible
+        if (discountCode.getEmails() != null && discountCode.getEmails().contains(email)) {
+            isValidForUser = true;
+        }
+
+        Optional<Subject_Course> subjectCourseOptional = subjectCourseRepository.findById(subjectId);
+        if (subjectCourseOptional.isEmpty()) {
+            return false;
+        }
+        Subject_Course subjectCourse = subjectCourseOptional.get();
+
+        // Check if the promo code applies to specific subjects
+        if (!isValidForUser && discountCode.getSubjects() != null && !discountCode.getSubjects().isEmpty()) {
+            // Assume the subject is passed in the username for now
+            isValidForUser = discountCode.getSubjects().contains(subjectCourse.getSubject());
+        }
+
+        return isValidForUser;
     }
 }

@@ -144,11 +144,8 @@ public class PostServices {
         int numberOfAdmins = newCourse.getAdmins().size();
 
         if (action.equalsIgnoreCase("rejected")) {
-            admin.getNewCourses().remove(newCourse);
-            adminRepository.save(admin);
-
             newCourse.getAdmins().remove(admin);
-            adminRepository.save(admin);
+            newCourseRepository.save(newCourse);
 
             if (numberOfAdmins == 1) {
                 List<Date> lessonDates = new ArrayList<>();
@@ -165,9 +162,18 @@ public class PostServices {
                         if (selectedAdmin.getNewCourses() == null) {
                             selectedAdmin.setNewCourses(new ArrayList<>());
                         }
-                        selectedAdmin.getNewCourses().add(newCourse);
-                        adminRepository.save(selectedAdmin);
+
+                        if (selectedAdmin.getId() != admin.getId()) {
+                            selectedAdmin.getNewCourses().add(newCourse);
+                        } else {
+                            admin.getNewCourses().remove(newCourse);
+                        }
                     }
+                    adminRepository.saveAll(leastBusyAdmins);
+
+                } else {
+
+                    return "No other admin with available dates for this course found in database";
                 }
             }
 
@@ -197,7 +203,6 @@ public class PostServices {
 
                 return "Course accepted and registered successfully";
             }
-
 
             return null;
     }
@@ -254,14 +259,10 @@ public class PostServices {
         }
 
         int minCourseCount;
-        if (minCourseCountAsumption != 0) {
-            minCourseCount = minCourseCountAsumption;
-        } else {
-            minCourseCount = availableAdmins.stream()
-                    .mapToInt(admin -> admin.getNewCourses() == null ? 0 : admin.getNewCourses().size())
-                    .min()
-                    .orElse(0);
-        }
+        minCourseCount = availableAdmins.stream()
+                .mapToInt(admin -> ((admin.getNewCourses()) == null || admin.getNewCourses().size() != minCourseCountAsumption) ? 0 : admin.getNewCourses().size())
+                .min()
+                .orElse(0);
 
 
         List<Admin> leastBusyAdmins = availableAdmins.stream()
@@ -275,4 +276,11 @@ public class PostServices {
 
         return leastBusyAdmins;
     }
+
+
+
+
+
+
+
 }
