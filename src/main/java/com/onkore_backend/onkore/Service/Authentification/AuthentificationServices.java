@@ -26,11 +26,14 @@ public class AuthentificationServices {
 
     public void RegisterUser(String username, String email, String password) {
         if (username == null || email == null || password == null) {
-            throw new IllegalArgumentException("Username, email, and password must not be null.");
+            throw new IllegalArgumentException("Nazwa użytkownika, email oraz hasło nie mogą być puste.");
         }
 
         if (userRepository.findByEmail(email).isPresent()) {
-            throw new IllegalArgumentException("Email already registered.");
+            throw new IllegalArgumentException("Ten email jest już zarejestrowany.");
+        }
+        if (userRepository.findByUsername(username).isPresent()) {
+            throw new IllegalArgumentException("Ta nazwa użytkownika jest już zarejestrowana");
         }
 
         User user = new User();

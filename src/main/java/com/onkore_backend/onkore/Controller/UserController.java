@@ -6,10 +6,13 @@ import com.onkore_backend.onkore.Service.Data.PostServices;
 import com.onkore_backend.onkore.Util.JsonFormatter;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -28,22 +31,30 @@ public class UserController {
     private PostServices postServices;
 
     @PostMapping("/register-user")
-    public String registerUser(@RequestBody Map<String, String> body) {
+    public ResponseEntity<Map<String, String>> registerUser(@RequestBody Map<String, String> body) {
         try {
             getAuthServices.RegisterUser(body.get("username"), body.get("email"), body.get("password"));
-            return "User registered successfully";
+            return ResponseEntity.ok(Collections.singletonMap("message", "Zarejestrowano pomyślnie użytkownik ."));
+        } catch (IllegalArgumentException e) {
+            // Return HTTP 400 for client-side errors (e.g., email already registered)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("error", e.getMessage()));
         } catch (Exception e) {
-            return e.getMessage();
+            // Return HTTP 500 for unexpected server errors
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("error", "An unexpected error occurred."));
         }
     }
 
     @PostMapping("/login-user")
-    public String loginUser(@RequestBody Map<String, String> body, HttpServletResponse response) {
+    public ResponseEntity<Map<String, String>> loginUser(@RequestBody Map<String, String> body, HttpServletResponse response) {
         try {
             getAuthServices.LoginUser(body.get("email"), body.get("password"), response);
-            return "User logged in successfully";
+            return ResponseEntity.ok(Collections.singletonMap("message", "Zalogowano pomyślnie użytkownika"));
+        } catch (IllegalArgumentException e) {
+            // Return HTTP 401 if authentication fails (e.g., wrong password or non-existing account)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("error", e.getMessage()));
         } catch (Exception e) {
-            return e.getMessage();
+            // Return HTTP 500 for unexpected errors
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("error", "An unexpected error occurred."));
         }
     }
 
