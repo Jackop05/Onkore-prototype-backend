@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -79,6 +80,11 @@ public class AdminController {
         } catch (Exception e) {
             return e.getMessage();
         }
+    }
+
+    @GetMapping("/get-all-admins-data")
+    public List<Map<String, Object>> getAllAdminsData() {
+        return getServices.getAllAdminData();
     }
 
     @GetMapping("/get-full-availability")

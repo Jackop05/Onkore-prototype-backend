@@ -36,6 +36,23 @@ public class GetServices {
     @Autowired
     private DiscountCodeRepository discountCodeRepository;
 
+    public List<Map<String, Object>> getAllAdminData() {
+        List<Admin> admins = adminRepository.findAll();
+
+        return admins.stream().map(admin -> {
+            Map<String, Object> teacherData = new HashMap<>();
+            teacherData.put("id", admin.getId());
+            teacherData.put("name", admin.getUsername());
+            teacherData.put("email", admin.getEmail());
+            // teacherData.put("profileImage", admin.getProfileImage()); // Assuming a profile image field exists
+            teacherData.put("subjects", admin.getSubjectTeachingList()); // List of subjects
+            // teacherData.put("lessonsCount", admin.getLessonsCount()); // Assuming there’s a field for lesson count
+            teacherData.put("about", admin.getDescription()); // Short bio
+            return teacherData;
+        }).collect(Collectors.toList());
+    }
+
+
     public static Map<String, Object> getUserData(HttpServletRequest request) {
         Claims claims = getTokenDataFromCookie(request);
 

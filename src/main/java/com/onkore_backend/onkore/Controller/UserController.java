@@ -69,8 +69,16 @@ public class UserController {
     }
 
     @GetMapping("/get-user-data")
-    public Map getUserData(HttpServletRequest request) {
-        return getServices.getUserData(request);
+    public ResponseEntity<?> getUserData(HttpServletRequest request) {
+        try {
+            Map<String, Object> userData = getServices.getUserData(request);
+            if (userData == null || userData.isEmpty()) {
+                return ResponseEntity.status(404).body(Map.of("error", "User not found"));
+            }
+            return ResponseEntity.ok(userData);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Internal server error", "message", e.getMessage()));
+        }
     }
 
     @PostMapping("/post-course")
