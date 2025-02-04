@@ -16,6 +16,7 @@ public class Current_Course {
     private String description;
     private String level;
     private String username;
+    private String additionalInfo;
     private Integer price;
     private Integer iconIndex;
     private ArrayList<String> topics;
@@ -40,6 +41,9 @@ public class Current_Course {
 
     public void setUsername(String username) {this.username = username;}
     public String getUsername() {return username;}
+
+    public void setAdditionalInfo(String additionalInfo) {this.additionalInfo = additionalInfo;}
+    public String getAdditionalInfo() {return additionalInfo;}
 
     public void setPrice(Integer price) {this.price = price;}
     public Integer getPrice() {return price;}

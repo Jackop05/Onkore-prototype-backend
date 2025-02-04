@@ -14,6 +14,7 @@ public class New_Course {
     private String username;
     private String description;
     private String subject;
+    private String additionalInfo;
 
     @DBRef
     private Subject_Course subjectCourse;
@@ -39,6 +40,9 @@ public class New_Course {
 
     public void setSubject(String subject) {this.subject = subject;}
     public String getSubject() {return subject;}
+
+    public void setAdditionalInfo(String additionalInfo) {this.additionalInfo = additionalInfo;}
+    public String getAdditionalInfo() {return additionalInfo;}
 
     public void setSubjectCourse(Subject_Course subjectCourse) {this.subjectCourse = subjectCourse;}
     public Subject_Course getSubjectCourse() {return subjectCourse;}

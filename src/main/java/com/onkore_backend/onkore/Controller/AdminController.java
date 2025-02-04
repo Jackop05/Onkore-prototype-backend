@@ -109,7 +109,8 @@ public class AdminController {
     @PostMapping("/handle-new-course")
     public String handleNewCourse(@RequestBody Map<String, String> body) {
         try {
-            return postServices.handleNewCourse(body.get("course_id"), body.get("admin_id"), body.get("action"));
+            postServices.handleNewCourse(body.get("course_id"), body.get("admin_id"));
+            return "Course handled successfully";
         } catch(Exception e) {
             return e.getMessage();
         }

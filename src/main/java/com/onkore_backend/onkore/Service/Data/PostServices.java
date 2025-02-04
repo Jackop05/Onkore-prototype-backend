@@ -37,7 +37,7 @@ public class PostServices {
 
     public void postDiscountCode(String codeName, Date beginsAt, Date expiresAt, Integer discountPercentage, Integer discountAmount, List<String> subjects, List<String> emails, String givenCodePassword, String authCodePassword) {
         Discount_Code newDiscountCode = new Discount_Code();
-        if (authCodePassword == null || givenCodePassword == null || codeName == null || beginsAt == null || expiresAt == null || ( discountPercentage == null || discountAmount == null) || subjects == null || emails == null) {
+        if (authCodePassword == null || givenCodePassword == null || codeName == null || beginsAt == null || expiresAt == null || (discountPercentage == null || discountAmount == null) || subjects == null || emails == null) {
             if (!authCodePassword.equals(givenCodePassword)) {
                 throw new RuntimeException("Invalid auth code");
             }
@@ -55,6 +55,142 @@ public class PostServices {
         DiscountCodeRepository.save(newDiscountCode);
     }
 
+
+    public void postCourse(String user_id, String subjectCourse_id, List<Date> givenLessonDates, String bonusInfo) {
+        User user = userRepository.findById(user_id)
+                .orElseThrow(() -> new RuntimeException("No user with given id found in database"));
+        Subject_Course subjectCourse = subjectCourseRepository.findById(subjectCourse_id)
+                .orElseThrow(() -> new RuntimeException("No course with given id found in database"));
+
+        New_Course newCourse = new New_Course();
+        newCourse.setUsername(user.getUsername());
+        newCourse.setDescription(subjectCourse.getDescription());
+        newCourse.setSubject(subjectCourse.getSubject());
+        newCourse.setLessonDates(new ArrayList<>());
+        newCourse.setSubjectCourse(subjectCourse);
+        newCourse.setAdditionalInfo(bonusInfo);
+
+        List<Admin> availableAdmins = getAvailableAdmins(givenLessonDates, subjectCourse.getSubject());
+        newCourse.setAdmins(availableAdmins);
+
+        List<Lesson_Dates> newLessonDates = givenLessonDates.stream().map(date -> {
+            Lesson_Dates lessonDate = new Lesson_Dates();
+            lessonDate.setLessonDate(date);
+            lessonDate.setStatus("");
+            lessonDatesRepository.save(lessonDate);
+            return lessonDate;
+        }).collect(Collectors.toList());
+
+        newCourse.setLessonDates(newLessonDates);
+        newCourseRepository.save(newCourse);
+
+        // Create Current_Course
+        Current_Course currentCourse = new Current_Course();
+        currentCourse.setId(newCourse.getId()); // Keep the same ID
+        currentCourse.setSubject(newCourse.getSubject());
+        currentCourse.setDescription(newCourse.getDescription());
+        currentCourse.setLessonDates(newLessonDates);
+        currentCourse.setSubjectCourse(newCourse.getSubjectCourse());
+        currentCourse.setUsername(newCourse.getUsername());
+        currentCourse.setAdditionalInfo(newCourse.getAdditionalInfo());
+        currentCourseRepository.save(currentCourse);
+
+        // Add Current_Course to User
+        if (user.getCurrentCourses() == null) {
+            user.setCurrentCourses(new ArrayList<>());
+        }
+        user.getCurrentCourses().add(currentCourse);
+        userRepository.save(user);
+    }
+
+
+    public void handleNewCourse(String course_id, String adminId) {
+        Current_Course currentCourse = currentCourseRepository.findById(course_id)
+                .orElseThrow(() -> new RuntimeException("No current_course with given id found in database"));
+
+        Admin admin = adminRepository.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("No admin found with the given username"));
+
+        if (admin.getCurrentCourses() == null) {
+            admin.setCurrentCourses(new ArrayList<>());
+        }
+        admin.getCurrentCourses().add(currentCourse);
+        adminRepository.save(admin);
+
+        newCourseRepository.deleteById(course_id);
+    }
+
+
+    public void changeCourse(String course_id, String admin1Username, String admin1Email, String admin2Username, String admin2Email) {
+        Admin admin1 = adminRepository.findByUsername(admin1Username)
+                .orElseThrow(() -> new RuntimeException("Admin1 not found"));
+        if (!admin1.getEmail().equals(admin1Email)) {
+            throw new RuntimeException("Admin1 email does not match");
+        }
+
+        Admin admin2 = adminRepository.findByUsername(admin2Username)
+                .orElseThrow(() -> new RuntimeException("Admin2 not found"));
+        if (!admin2.getEmail().equals(admin2Email)) {
+            throw new RuntimeException("Admin2 email does not match");
+        }
+
+        Current_Course course = currentCourseRepository.findById(course_id)
+                .orElseThrow(() -> new RuntimeException("No course with given id found"));
+
+        if (admin1.getCurrentCourses() != null) {
+            admin1.getCurrentCourses().remove(course);
+            adminRepository.save(admin1);
+        }
+
+        if (admin2.getCurrentCourses() == null) {
+            admin2.setCurrentCourses(new ArrayList<>());
+        }
+        admin2.getCurrentCourses().add(course);
+        adminRepository.save(admin2);
+    }
+
+    private List<Admin> getAvailableAdmins(List<Date> lessonDates, String subject) {
+        return adminRepository.findAll().stream()
+                .filter(admin -> admin.getSubjectTeachingList().contains(subject))
+                .filter(admin -> isAvailableForLessonDates(admin, lessonDates))
+                .collect(Collectors.toList());
+    }
+
+    private boolean isAvailableForLessonDates(Admin admin, List<Date> lessonDates) {
+        for (Date lessonDate : lessonDates) {
+            boolean dateMatches = false;
+            for (Availability availability : admin.getAvailability()) {
+                LocalDate localDate = lessonDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                LocalTime lessonTime = lessonDate.toInstant().atZone(ZoneId.systemDefault()).toLocalTime();
+                String weekday = localDate.getDayOfWeek().toString();
+
+                if (availability.getWeekday().equalsIgnoreCase(weekday)
+                        && !lessonTime.isBefore(availability.getHourStart())
+                        && !lessonTime.isAfter(availability.getHourEnd())) {
+                    dateMatches = true;
+                    break;
+                }
+            }
+            if (!dateMatches) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
     public void postCourse(String user_id, String subjectCourse_id, List<Date> givenLessonDates) {
         User user;
         Optional optionalUser = userRepository.findById(user_id);
@@ -277,10 +413,4 @@ public class PostServices {
         return leastBusyAdmins;
     }
 
-
-
-
-
-
-
-}
+*/

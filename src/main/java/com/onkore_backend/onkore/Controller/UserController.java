@@ -99,7 +99,7 @@ public class UserController {
                 }
             });
 
-            postServices.postCourse(userId, courseId, dateList);
+            postServices.postCourse(userId, courseId, dateList, bonusInfo);
             return "Course posted successfully";
         } catch (Exception e) {
             return e.getMessage();
