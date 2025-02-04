@@ -12,10 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/user")
@@ -82,7 +79,8 @@ public class UserController {
     }
 
     @PostMapping("/post-course")
-    public String postCourse(@RequestBody Map<String, String> body) {
+    public ResponseEntity<Map<String, String>> postCourse(@RequestBody Map<String, String> body) {
+        Map<String, String> response = new HashMap<>();
         try {
             String userId = body.get("user_id");
             String courseId = body.get("course_id");
@@ -100,9 +98,14 @@ public class UserController {
             });
 
             postServices.postCourse(userId, courseId, dateList, bonusInfo);
-            return "Course posted successfully";
+
+            response.put("message", "Course posted successfully");
+            return ResponseEntity.ok(response); // ✅ Returns JSON response
+
         } catch (Exception e) {
-            return e.getMessage();
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response); // ✅ Returns JSON error response
         }
     }
+
 }
