@@ -55,6 +55,41 @@ public class UserController {
         }
     }
 
+    @GetMapping("/get-user-current-courses")
+    public ResponseEntity<?> getUserCurrentCourses(HttpServletRequest request) {
+        try {
+            List<Map<String, Object>> courses = getServices.getUserCurrentCourses(request);
+            if (courses == null || courses.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("error", "No current courses found for user"));
+            }
+            return ResponseEntity.ok(courses);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("error", "An unexpected error occurred."));
+        }
+    }
+
+    @GetMapping("/get-single-user-current-course")
+    public ResponseEntity<?> getSingleUserCurrentCourse(@RequestParam String courseId, HttpServletRequest request) {
+        try {
+            Map<String, Object> course = getServices.getSingleUserCurrentCourse(request, courseId);
+            if (course == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Collections.singletonMap("error", "No current courses found for user"));
+            }
+            System.out.println(course);
+            return ResponseEntity.ok(course);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Collections.singletonMap("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("error", "An unexpected error occurred."));
+        }
+    }
+
+
     @PostMapping("/logout-user")
     public String loginUser(HttpServletResponse response) {
         try {

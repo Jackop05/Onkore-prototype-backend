@@ -1,13 +1,7 @@
 package com.onkore_backend.onkore.Service.Data;
 
-import com.onkore_backend.onkore.Model.Admin;
-import com.onkore_backend.onkore.Model.Availability;
-import com.onkore_backend.onkore.Model.Discount_Code;
-import com.onkore_backend.onkore.Repository.AdminRepository;
-import com.onkore_backend.onkore.Repository.AvailabilityRepository;
-import com.onkore_backend.onkore.Repository.DiscountCodeRepository;
-import com.onkore_backend.onkore.Repository.SubjectCourseRepository;
-import com.onkore_backend.onkore.Model.Subject_Course;
+import com.onkore_backend.onkore.Model.*;
+import com.onkore_backend.onkore.Repository.*;
 import com.onkore_backend.onkore.Util.Sorters;
 import com.onkore_backend.onkore.Util.TimeOperator;
 import io.jsonwebtoken.Claims;
@@ -36,6 +30,11 @@ public class GetServices {
     @Autowired
     private DiscountCodeRepository discountCodeRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private CurrentCourseRepository currentCourseRepository;
+
     public List<Map<String, Object>> getAllAdminData() {
         List<Admin> admins = adminRepository.findAll();
 
@@ -62,11 +61,63 @@ public class GetServices {
             studentData.put("username", claims.get("username"));
             studentData.put("email", claims.get("email"));
             studentData.put("currentCourses", claims.get("currentCourses"));
+            System.out.println(studentData.get("currentCourses"));
             studentData.put("role", claims.get("role"));
             return studentData;
         } else {
             return null;
         }
+    }
+
+    public List<Map<String, Object>> getUserCurrentCourses(HttpServletRequest request) {
+        Claims claims = getTokenDataFromCookie(request);
+        if (claims == null) {
+            return null;
+        }
+
+        String userId = (String) claims.get("id");
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isEmpty()) {
+            return null;
+        }
+
+        User user = userOptional.get();
+        List<Current_Course> currentCourses = user.getCurrentCourses();
+
+        return currentCourses.stream().map(course -> Map.of(
+                "id", course.getId(),
+                "subject", course.getSubject(),
+                "description", course.getDescription(),
+                "lessonDates", course.getLessonDates(),
+                "level", course.getSubjectCourse().getLevel()
+        )).collect(Collectors.toList());
+    }
+
+    public Map<String, Object> getSingleUserCurrentCourse(HttpServletRequest request, String courseId) {
+        Claims claims = getTokenDataFromCookie(request);
+        if (claims == null) {
+            return null;
+        }
+
+        Optional<Current_Course> courseOptional = currentCourseRepository.findById(courseId);
+        if (courseOptional.isEmpty()) {
+            return null;
+        }
+
+        Current_Course course = courseOptional.get();
+        Map courseInfo = Map.of(
+                "id", course.getId(),
+                "subject", course.getSubject(),
+                "description", course.getDescription(),
+                "lessonDates", course.getLessonDates().stream().map(lesson -> Map.of(
+                        "id", lesson.getId(),
+                        "lessonDate", lesson.getLessonDate(),
+                        "status", lesson.getStatus()
+                )).collect(Collectors.toList()), // Convert lessonDates to detailed objects
+                "level", course.getSubjectCourse().getLevel()
+        );
+
+        return courseInfo;
     }
 
     public static Map<String, Object> getAdminData(HttpServletRequest request) {
@@ -162,14 +213,18 @@ public class GetServices {
 
 
     public List<String> getAvailableDays(String courseId, String hour) {
-
         String[] hours = hour.split("-");
+
         if (hours.length != 2) {
             throw new IllegalArgumentException("Invalid hour format. Expected 'HH:mm-HH:mm'");
         }
 
-        LocalTime hourStart = LocalTime.parse(hours[0].trim());
-        LocalTime hourEnd = LocalTime.parse(hours[1].trim());
+        // Normalize hours to ensure leading zeros
+        String formattedStart = String.format("%02d:%s", Integer.parseInt(hours[0].trim().split(":")[0]), hours[0].trim().split(":")[1]);
+        String formattedEnd = String.format("%02d:%s", Integer.parseInt(hours[1].trim().split(":")[0]), hours[1].trim().split(":")[1]);
+
+        LocalTime hourStart = LocalTime.parse(formattedStart);
+        LocalTime hourEnd = LocalTime.parse(formattedEnd);
 
         // Retrieve the course subject
         Optional<Subject_Course> courseOptional = subjectCourseRepository.findById(courseId);

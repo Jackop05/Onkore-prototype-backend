@@ -57,7 +57,7 @@ public class AuthentificationServices {
             throw new RuntimeException("Invalid password");
         }
 
-        String token = JsonWebToken.generateUserToken(user.getId(), user.getUsername(), user.getEmail(), user.getCurrentCourses(), "user");
+        String token = JsonWebToken.generateUserToken(user.getId(), user.getUsername(), user.getEmail(), "user");
         JsonWebToken.setJwtCookie(response, token);
 
         return null;

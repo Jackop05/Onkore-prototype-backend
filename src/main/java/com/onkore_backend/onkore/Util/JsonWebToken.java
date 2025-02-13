@@ -20,13 +20,12 @@ public class JsonWebToken {
     private static final String SECRET_KEY = "SecretKeyWithMoreLettersAndMoreWordsIncluded123456789";
     private static final long EXPIRATION_TIME = 86400000;
 
-    public static String generateUserToken(String id, String username, String email, List currentCourses, String role) {
+    public static String generateUserToken(String id, String username, String email, String role) {
         return Jwts.builder()
                 .setSubject(username)
                 .claim("id", id)
                 .claim("username", username)
                 .claim("email", email)
-                .claim("currentCourses", currentCourses)
                 .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
