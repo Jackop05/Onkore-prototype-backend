@@ -43,32 +43,6 @@ public class JsonWebToken {
                 ))
                 .collect(Collectors.toList());
 
-        List<Map<String, Object>> serializedCurrentCourses = currentCourses.stream()
-                .map(item -> Map.of(
-                        "id", item.getId(),
-                        "subject", item.getSubject(),
-                        "description", item.getDescription(),
-                        "level", item.getLevel(),
-                        "username", item.getUsername(),
-                        "price", item.getPrice(),
-                        "iconIndex", item.getIconIndex(),
-                        "topics", item.getTopics(),
-                        "subjectCourse", serializeSubjectCourseToString(item.getSubjectCourse()),
-                        "lessonDates", serializeLessonDatesToString(item.getLessonDates())
-                        ))
-                .collect(Collectors.toList());
-
-        List<Map<String, Object>> serializedNewCourses = newCourses.stream()
-                .map(item -> Map.of(
-                        "id", item.getId(),
-                        "username", item.getUsername(),
-                        "description", item.getDescription(),
-                        "subject", item.getSubject(),
-                        "subjectCourse", serializeSubjectCourseToString(item.getSubjectCourse()),
-                        "lessonDates", serializeLessonDatesToString(item.getLessonDates())
-                ))
-                .collect(Collectors.toList());
-
         return Jwts.builder()
                 .setSubject(username)
                 .claim("id", id)
@@ -77,8 +51,6 @@ public class JsonWebToken {
                 .claim("contact", contact)
                 .claim("description", description)
                 .claim("availability", serializedAvailability)
-                .claim("currentCourses", serializedCurrentCourses)
-                .claim("newCourses", serializedNewCourses)
                 .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))

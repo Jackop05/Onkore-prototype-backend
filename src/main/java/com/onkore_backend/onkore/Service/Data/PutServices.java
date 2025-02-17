@@ -61,24 +61,75 @@ public class PutServices {
 
     // public void putMaterial(String course_id, String material) {}   // this one has to be improved, but I don't know how ot implement files transfer yet
 
-    public void putAvailability(String admin_id, LocalTime startHour, LocalTime endHour, String weekday) {
-        Admin admin;
-        Optional optionalAdmin = adminRepository.findById(admin_id);
-        if (optionalAdmin.isPresent()) {
-            admin = (Admin) optionalAdmin.get();
-        } else {
-            throw new RuntimeException("Admin not found");
+    public void updateLessonLink(String courseId, String lessonId, String link) {
+        Current_Course course = currentCourseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("No course found with given ID"));
+
+        for (Lesson_Dates lesson : course.getLessonDates()) {
+            if (lesson.getId().equals(lessonId)) {
+                lesson.setLink(link);
+                lesson.setStatus(link.isEmpty() ? "zaplanowane" : "w trakcie");
+                lessonDatesRepository.save(lesson);
+                return;
+            }
+        }
+        throw new RuntimeException("No lesson found with given ID in this course");
+    }
+
+    public void updateLessonStatus(String courseId, String lessonId, String newStatus) {
+        if (newStatus.equalsIgnoreCase("zaplanowane") && newStatus.equalsIgnoreCase("w trakcie") && newStatus.equalsIgnoreCase("zakończone")) {
+            throw new RuntimeException("Invalid lesson status: " + newStatus);
         }
 
+        Current_Course course = currentCourseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("No course found with given ID"));
+
+        for (Lesson_Dates lesson : course.getLessonDates()) {
+            if (lesson.getId().equals(lessonId)) {
+                lesson.setStatus(newStatus);
+                lessonDatesRepository.save(lesson);
+                return;
+            }
+        }
+        throw new RuntimeException("No lesson found with given ID in this course");
+    }
+
+
+    public void putAvailability(String admin_id, LocalTime startHour, LocalTime endHour, String weekday) {
+        // Fetch the admin from the database
+        System.out.println(admin_id);
+        Optional<Admin> optionalAdmin = adminRepository.findById(admin_id);
+        if (!optionalAdmin.isPresent()) {
+            throw new RuntimeException("Admin not found");
+        }
+        System.out.println("Working1");
+        Admin admin = optionalAdmin.get();
+
+        // Create new availability entry
+        System.out.println("Working2");
         Availability availability = new Availability();
         availability.setHourStart(startHour);
         availability.setHourEnd(endHour);
         availability.setWeekday(weekday);
-        availabilityRepository.save(availability);
+        System.out.println("Working3");
 
+        // Save availability first so it has an ID
+        availabilityRepository.save(availability);
+        System.out.println("Working4");
+
+        // Ensure admin's availability list is initialized
+        if (admin.getAvailability() == null) {
+            admin.setAvailability(new ArrayList<>());
+        }
+        System.out.println("Working5");
+
+        // Add availability to admin and save
         admin.getAvailability().add(availability);
         adminRepository.save(admin);
+        System.out.println("Working6");
+
     }
+
 
     public void putTopic(String course_id, String topicName) {
         Current_Course currentCourse;

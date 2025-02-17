@@ -68,7 +68,7 @@ public class AuthentificationServices {
             throw new IllegalArgumentException("Username, email, password and contact must not be null.");
         }
 
-        if (userRepository.findByEmail(email).isPresent()) {
+        if (adminRepository.findByEmail(email).isPresent()) {
             throw new IllegalArgumentException("Email already registered.");
         }
 
@@ -78,6 +78,7 @@ public class AuthentificationServices {
         admin.setPassword(passwordEncoder.encode(password));
         admin.setDescription(description);
         admin.setContact(contact);
+        admin.setSubjectTeachingList(new ArrayList<String>());
         admin.setAvailability(new ArrayList<Availability>());
         admin.setCurrentCourses(new ArrayList<Current_Course>());
         admin.setNewCourses(new ArrayList<New_Course>());

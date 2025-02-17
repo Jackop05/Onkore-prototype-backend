@@ -10,6 +10,7 @@ public class Lesson_Dates {
 
     private Date lessonDate;
     private String status;
+    private String link;
 
 
     public void setId(String id) {this.id = id;}
@@ -20,4 +21,7 @@ public class Lesson_Dates {
 
     public void setStatus(String status) {this.status = status;}
     public String getStatus() {return status;}
+
+    public void setLink(String link) {this.link = link;}
+    public String getLink() {return link;}
 }

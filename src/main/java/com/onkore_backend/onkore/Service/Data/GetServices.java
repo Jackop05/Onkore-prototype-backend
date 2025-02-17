@@ -89,9 +89,42 @@ public class GetServices {
                 "subject", course.getSubject(),
                 "description", course.getDescription(),
                 "lessonDates", course.getLessonDates(),
-                "level", course.getSubjectCourse().getLevel()
+                "level", course.getSubjectCourse().getLevel(),
+                "iconIndex", course.getSubjectCourse().getIconIndex()
         )).collect(Collectors.toList());
     }
+
+    public List<Map<String, Object>> getAdminCurrentCourses(HttpServletRequest request) {
+        Claims claims = getTokenDataFromCookie(request);
+        if (claims == null) {
+            return null;
+        }
+        System.out.println(claims);
+
+        String adminId = (String) claims.get("id");
+        Optional<Admin> adminOptional = adminRepository.findById(adminId);
+        if (adminOptional.isEmpty()) {
+            return null;
+        }
+
+        Admin admin = adminOptional.get();
+        List<Current_Course> currentCourses = admin.getCurrentCourses();
+
+        return currentCourses.stream().map(course -> Map.of(
+                "id", course.getId(),
+                "subject", course.getSubject(),
+                "description", course.getDescription(),
+                "lessonDates", course.getLessonDates().stream().map(lesson -> Map.of(
+                        "id", lesson.getId(),
+                        "lessonDate", lesson.getLessonDate(),
+                        "status", lesson.getStatus(),
+                        "link", lesson.getLink()
+                )).collect(Collectors.toList()),
+                "level", course.getSubjectCourse().getLevel(),
+                "username", course.getUsername()
+        )).collect(Collectors.toList());
+    }
+
 
     public Map<String, Object> getSingleUserCurrentCourse(HttpServletRequest request, String courseId) {
         Claims claims = getTokenDataFromCookie(request);
@@ -208,10 +241,31 @@ public class GetServices {
         return allAvailableDates;
     }
 
+    public Map<String, Object> getAvailability(String adminId) {
+        Map<String, Object> response = new HashMap<>();
 
+        // Check if admin exists
+        Optional<Admin> optionalAdmin = adminRepository.findById(adminId);
+        if (optionalAdmin.isEmpty()) {
+            response.put("error", "Admin not found");
+            return response;
+        }
 
+        Admin admin = optionalAdmin.get();
+        List<Availability> availabilities = admin.getAvailability(); // Get availability list
 
+        // Convert availability objects to a structured response
+        List<Map<String, String>> availabilityList = availabilities.stream().map(availability -> Map.of(
+                "id", availability.getId(),
+                "weekday", availability.getWeekday(),
+                "hourStart", availability.getHourStart().toString(),
+                "hourEnd", availability.getHourEnd().toString()
+        )).collect(Collectors.toList());
 
+        response.put("admin_id", admin.getId());
+        response.put("availability", availabilityList);
+        return response;
+    }
     public List<String> getAvailableDays(String courseId, String hour) {
         String[] hours = hour.split("-");
 

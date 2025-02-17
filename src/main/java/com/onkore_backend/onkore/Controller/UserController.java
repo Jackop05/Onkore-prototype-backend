@@ -59,7 +59,7 @@ public class UserController {
     public ResponseEntity<?> getUserCurrentCourses(HttpServletRequest request) {
         try {
             List<Map<String, Object>> courses = getServices.getUserCurrentCourses(request);
-            if (courses == null || courses.isEmpty()) {
+            if (courses == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("error", "No current courses found for user"));
             }
             return ResponseEntity.ok(courses);

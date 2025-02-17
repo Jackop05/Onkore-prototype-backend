@@ -1,10 +1,8 @@
 package com.onkore_backend.onkore.Service.Data;
 
 import com.onkore_backend.onkore.Model.Discount_Code;
-import com.onkore_backend.onkore.Repository.AdminRepository;
-import com.onkore_backend.onkore.Repository.AvailabilityRepository;
-import com.onkore_backend.onkore.Repository.CurrentCourseRepository;
-import com.onkore_backend.onkore.Repository.DiscountCodeRepository;
+import com.onkore_backend.onkore.Model.Lesson_Dates;
+import com.onkore_backend.onkore.Repository.*;
 import com.onkore_backend.onkore.Model.Admin;
 import com.onkore_backend.onkore.Model.Current_Course;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +24,9 @@ public class DeleteServices {
 
     @Autowired
     private CurrentCourseRepository currentCourseRepository;
+
+    @Autowired
+    private LessonDatesRepository lessonDatesRepository;
 
     public String deleteDiscountCode(String codeName, String givenCodePassword, String authCodePassword) {
         if (authCodePassword == null ) {
@@ -70,6 +71,22 @@ public class DeleteServices {
 
         return "Course not found";
     }
+
+    public void cancelLesson(String courseId, String lessonId) {
+        Current_Course course = currentCourseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("No course found with given ID"));
+
+        for (Lesson_Dates lesson : course.getLessonDates()) {
+            if (lesson.getId().equals(lessonId)) {
+                lesson.setLink(null);
+                lesson.setStatus("odwołane");
+                lessonDatesRepository.save(lesson);
+                return;
+            }
+        }
+        throw new RuntimeException("No lesson found with given ID in this course");
+    }
+
 
     public void deleteMaterial(String course_id, Integer material_number) {
         // Implementation left empty as per instructions

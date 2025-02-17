@@ -9,10 +9,13 @@ import com.onkore_backend.onkore.Service.Data.PutServices;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -34,22 +37,43 @@ public class AdminController {
     private DeleteServices deleteServices;
 
     @PostMapping("/register-admin")
-    public String RegisterAdmin(@RequestBody Map<String, String> body) {
+    public ResponseEntity<Map<String, String>> RegisterAdmin(@RequestBody Map<String, String> body) {
         try {
-            getAuthServices.RegisterAdmin(body.get("username"), body.get("email"), body.get("password"), body.get("description"), body.get("contact"));
-            return "Admin registered successfully";
+            getAuthServices.RegisterAdmin(
+                    body.get("username"),
+                    body.get("email"),
+                    body.get("password"),
+                    body.get("description"),
+                    body.get("contact")
+            );
+
+            // ✅ Return JSON response
+            return ResponseEntity.ok(Collections.singletonMap("message", "Admin registered successfully"));
+
+        } catch (IllegalArgumentException e) {
+            // Return JSON error with 400 Bad Request
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Collections.singletonMap("error", e.getMessage()));
         } catch (Exception e) {
-            return e.getMessage();
+            // Return JSON error with 500 Internal Server Error
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("error", "Unexpected error occurred: " + e.getMessage()));
         }
     }
 
+
     @PostMapping("/login-admin")
-    public String LoginAdmin(@RequestBody Map<String, String> body, HttpServletResponse response) {
+    public ResponseEntity LoginAdmin(@RequestBody Map<String, String> body, HttpServletResponse response) {
+
         try {
             getAuthServices.LoginAdmin(body.get("email"), body.get("password"), response);
-            return "Admin logged in successfully";
+            return ResponseEntity.ok(Collections.singletonMap("message", "Zalogowano pomyślnie administratora"));
+        } catch (IllegalArgumentException e) {
+            // Return HTTP 401 if authentication fails (e.g., wrong password or non-existing account)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("error", e.getMessage()));
         } catch (Exception e) {
-            return e.getMessage();
+            // Return HTTP 500 for unexpected errors
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("error", "An unexpected error occurred."));
         }
     }
 
@@ -70,10 +94,11 @@ public class AdminController {
 
     @PutMapping("/post-availability")
     public String postAvailability(@RequestBody Map<String, String> body) {
+        System.out.println(body);
         try {
             DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-            LocalTime startHour = LocalTime.parse(body.get("startHour"), timeFormatter);
-            LocalTime endHour = LocalTime.parse(body.get("endHour"), timeFormatter);
+            LocalTime startHour = LocalTime.parse(body.get("hourStart"), timeFormatter);
+            LocalTime endHour = LocalTime.parse(body.get("hourEnd"), timeFormatter);
 
             putServices.putAvailability(body.get("admin_id"), startHour, endHour, body.get("weekday"));
             return "Availability posted successfully";
@@ -93,8 +118,60 @@ public class AdminController {
     }
 
     @GetMapping("/get-availability")
-    public Map getAvailability(HttpServletResponse response) {
-        return getServices.getReducedAvailableDates();
+    public ResponseEntity<Map<String, Object>> getAvailability(@RequestParam String adminId) {
+        try {
+            Map<String, Object> availabilityData = getServices.getAvailability(adminId);
+            return ResponseEntity.ok(availabilityData);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("error", "An error occurred: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/get-admin-current-courses")
+    public ResponseEntity<?> getUserCurrentCourses(HttpServletRequest request) {
+        try {
+            List<Map<String, Object>> courses = getServices.getAdminCurrentCourses(request);
+            System.out.println("Courses: " + courses);
+            if (courses == null || courses.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("error", "No current courses found for admin"));
+            }
+
+            return ResponseEntity.ok(courses);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("error", "An unexpected error occurred."));
+        }
+    }
+
+    @PutMapping("/update-lesson-link")
+    public ResponseEntity<String> updateLessonLink(@RequestBody Map<String, String> requestData) {
+        String courseId = requestData.get("courseId");
+        String lessonId = requestData.get("lessonId");
+        String link = requestData.get("link");
+
+        putServices.updateLessonLink(courseId, lessonId, link);
+        return ResponseEntity.ok("Lesson link updated successfully");
+    }
+
+    @DeleteMapping("/cancel-lesson")
+    public ResponseEntity<String> cancelLesson(@RequestBody Map<String, String> requestData) {
+        String courseId = requestData.get("courseId");
+        String lessonId = requestData.get("lessonId");
+
+        deleteServices.cancelLesson(courseId, lessonId);
+        return ResponseEntity.ok("Lesson canceled successfully");
+    }
+
+    @PutMapping("/update-lesson-status")
+    public ResponseEntity<String> updateLessonStatus(@RequestBody Map<String, String> requestData) {
+        String courseId = requestData.get("courseId");
+        String lessonId = requestData.get("lessonId");
+        String newStatus = requestData.get("status");
+
+        putServices.updateLessonStatus(courseId, lessonId, newStatus);
+        return ResponseEntity.ok("Lesson status updated successfully");
     }
 
     @PutMapping("/put-lesson-status")
