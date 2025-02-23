@@ -1,13 +1,13 @@
 package com.onkore_backend.onkore.Service.Data;
 
-import com.onkore_backend.onkore.Model.Discount_Code;
-import com.onkore_backend.onkore.Model.Lesson_Dates;
+import com.onkore_backend.onkore.Model.*;
 import com.onkore_backend.onkore.Repository.*;
-import com.onkore_backend.onkore.Model.Admin;
-import com.onkore_backend.onkore.Model.Current_Course;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -27,6 +27,9 @@ public class DeleteServices {
 
     @Autowired
     private LessonDatesRepository lessonDatesRepository;
+
+    @Autowired
+    private MaterialRepository materialRepository;
 
     public String deleteDiscountCode(String codeName, String givenCodePassword, String authCodePassword) {
         if (authCodePassword == null ) {
@@ -88,7 +91,40 @@ public class DeleteServices {
     }
 
 
-    public void deleteMaterial(String course_id, Integer material_number) {
-        // Implementation left empty as per instructions
+
+
+
+
+
+    public void deleteMaterialFromCourse(String courseId, String materialId, boolean deleteFileFromDisk) {
+        Current_Course course = currentCourseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        // 1) Filter out the material from the course
+        List<Material> updatedList = new ArrayList<>();
+        Material foundMaterial = null;
+
+        if (course.getMaterials() != null) {
+            for (Material m : course.getMaterials()) {
+                if (!m.getId().equals(materialId)) {
+                    updatedList.add(m);
+                } else {
+                    foundMaterial = m;
+                }
+            }
+        }
+        course.setMaterials(updatedList);
+        currentCourseRepository.save(course);
+
+        // 2) Optionally delete the Material record + file from disk
+        if (foundMaterial != null) {
+            if (deleteFileFromDisk) {
+                File file = new File(foundMaterial.getFilePath());
+                if (file.exists()) {
+                    file.delete();
+                }
+            }
+            materialRepository.deleteById(materialId);
+        }
     }
 }

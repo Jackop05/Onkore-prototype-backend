@@ -22,6 +22,9 @@ public class Current_Course {
     private ArrayList<String> topics;
 
     @DBRef
+    private List<Material> materials;
+
+    @DBRef
     private Subject_Course subjectCourse;
 
     @DBRef
@@ -50,6 +53,9 @@ public class Current_Course {
 
     public void setIconIndex(Integer iconIndex) {this.iconIndex = iconIndex;}
     public Integer getIconIndex() {return iconIndex;}
+
+    public void setMaterials(List<Material> materials) {this.materials = materials;}
+    public List<Material> getMaterials() {return materials;}
 
     public void setTopics(ArrayList<String> topics) {this.topics = topics;}
     public ArrayList<String> getTopics() {return topics;}

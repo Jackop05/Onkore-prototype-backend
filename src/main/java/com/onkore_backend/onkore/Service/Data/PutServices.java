@@ -1,22 +1,24 @@
 package com.onkore_backend.onkore.Service.Data;
 
-import com.onkore_backend.onkore.Model.Admin;
-import com.onkore_backend.onkore.Model.Availability;
-import com.onkore_backend.onkore.Model.Current_Course;
-import com.onkore_backend.onkore.Model.Lesson_Dates;
-import com.onkore_backend.onkore.Repository.AdminRepository;
-import com.onkore_backend.onkore.Repository.AvailabilityRepository;
-import com.onkore_backend.onkore.Repository.CurrentCourseRepository;
-import com.onkore_backend.onkore.Repository.LessonDatesRepository;
+import com.onkore_backend.onkore.Model.*;
+import com.onkore_backend.onkore.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.io.IOException;
+import java.io.File;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
 public class PutServices {
+    private static final String UPLOAD_DIR = "/tmp/uploads";
 
     @Autowired
     AdminRepository adminRepository;
@@ -26,8 +28,12 @@ public class PutServices {
 
     @Autowired
     CurrentCourseRepository currentCourseRepository;
+
     @Autowired
     private LessonDatesRepository lessonDatesRepository;
+
+    @Autowired
+    private MaterialRepository materialRepository;
 
     public String putLessonStatus(String course_id, String lesson_id, String status) {
         if (!status.equals("accepted") && !status.equals("rejected") && !status.equals("canceled") && !status.equals("running now") && !status.equals("done") ) {
@@ -58,8 +64,6 @@ public class PutServices {
 
         return "Lesson's status changed to canceled";
     }
-
-    // public void putMaterial(String course_id, String material) {}   // this one has to be improved, but I don't know how ot implement files transfer yet
 
     public void updateLessonLink(String courseId, String lessonId, String link) {
         Current_Course course = currentCourseRepository.findById(courseId)
@@ -131,19 +135,39 @@ public class PutServices {
     }
 
 
-    public void putTopic(String course_id, String topicName) {
-        Current_Course currentCourse;
-        Optional optionalCurrentCourse = currentCourseRepository.findById(course_id);
-        if (optionalCurrentCourse.isPresent()) {
-            currentCourse = (Current_Course) optionalCurrentCourse.get();
-        } else {
-            throw new RuntimeException("Course not found");
+
+
+
+    public Material uploadPdfAndAddToCourse(String courseId, MultipartFile file) throws IOException {
+        // 1) Ensure course exists
+        Current_Course course = currentCourseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        // 2) Store the file on disk
+        if (!new File(UPLOAD_DIR).exists()) {
+            Files.createDirectories(Paths.get(UPLOAD_DIR));
         }
 
-        ArrayList<String> newTopicList = currentCourse.getTopics();
-        newTopicList.add(topicName);
+        // For uniqueness, you can do something like a timestamp or a random ID
+        String uniqueFileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+        Path filePath = Paths.get(UPLOAD_DIR, uniqueFileName);
+        Files.write(filePath, file.getBytes());  // Save the PDF bytes
 
-        currentCourse.setTopics(newTopicList);
-        currentCourseRepository.save(currentCourse);
+        // 3) Create Material doc in DB
+        Material material = new Material();
+        material.setFilePath(filePath.toString());
+        material.setOriginalFilename(file.getOriginalFilename());
+        material = materialRepository.save(material);
+
+        // 4) Add to the course's list of materials
+        if (course.getMaterials() == null) {
+            course.setMaterials(new ArrayList<>());
+        }
+        course.getMaterials().add(material);
+
+        // 5) Save the updated course
+        currentCourseRepository.save(course);
+
+        return material;
     }
 }

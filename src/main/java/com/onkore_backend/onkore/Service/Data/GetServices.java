@@ -32,8 +32,12 @@ public class GetServices {
 
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private CurrentCourseRepository currentCourseRepository;
+
+    @Autowired
+    private MaterialRepository materialRepository;
 
     public List<Map<String, Object>> getAllAdminData() {
         List<Admin> admins = adminRepository.findAll();
@@ -132,7 +136,6 @@ public class GetServices {
         return newCourses;
     }
 
-
     public Map<String, Object> getSingleUserCurrentCourse(HttpServletRequest request, String courseId) {
         Claims claims = getTokenDataFromCookie(request);
         if (claims == null) {
@@ -152,9 +155,15 @@ public class GetServices {
                 "lessonDates", course.getLessonDates().stream().map(lesson -> Map.of(
                         "id", lesson.getId(),
                         "lessonDate", lesson.getLessonDate(),
-                        "status", lesson.getStatus()
+                        "status", lesson.getStatus(),
+                        "link", lesson.getLink()
                 )).collect(Collectors.toList()), // Convert lessonDates to detailed objects
-                "level", course.getSubjectCourse().getLevel()
+                "level", course.getSubjectCourse().getLevel(),
+                "materials", course.getMaterials().stream().map(material -> Map.of(
+                        "filename", material.getOriginalFilename(),
+                        "path", material.getFilePath(),
+                        "id", material.getId()
+                ))
         );
 
         return courseInfo;
@@ -357,5 +366,15 @@ public class GetServices {
         }
 
         return isValidForUser;
+    }
+
+
+
+
+
+
+    public Material getMaterial(String materialId) {
+        return materialRepository.findById(materialId)
+                .orElseThrow(() -> new RuntimeException("Material not found"));
     }
 }
