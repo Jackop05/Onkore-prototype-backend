@@ -56,9 +56,9 @@ public class PostServices {
     }
 
 
-    public void postCourse(String user_id, String subjectCourse_id, List<Date> givenLessonDates, String bonusInfo) {
-        User user = userRepository.findById(user_id)
-                .orElseThrow(() -> new RuntimeException("No user with given id found in database"));
+    public void postCourse(String username, String subjectCourse_id, List<Date> givenLessonDates, String bonusInfo) {
+        User user = (User) userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("No user with given username in database"));
         Subject_Course subjectCourse = subjectCourseRepository.findById(subjectCourse_id)
                 .orElseThrow(() -> new RuntimeException("No course with given id found in database"));
 
@@ -77,6 +77,7 @@ public class PostServices {
             Lesson_Dates lessonDate = new Lesson_Dates();
             lessonDate.setLessonDate(date);
             lessonDate.setStatus("");
+            lessonDate.setLink("");
             lessonDatesRepository.save(lessonDate);
             return lessonDate;
         }).collect(Collectors.toList());

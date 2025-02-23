@@ -40,6 +40,7 @@ public class AuthentificationServices {
         user.setUsername(username);
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
+        user.setResetPasswordToken("");
         user.setCurrentCourses(new ArrayList<Current_Course>());
 
         userRepository.save(user);
@@ -111,4 +112,5 @@ public class AuthentificationServices {
     public void LogoutAdmin(HttpServletResponse response) {
         JsonWebToken.deleteJwtCookie(response);
     }
+
 }

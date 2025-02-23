@@ -14,6 +14,7 @@ public class User {
     private String username;
     private String email;
     private String password;
+    private String resetPasswordToken;
 
     @DBRef
     private List<Current_Course> currentCourses;
@@ -30,6 +31,9 @@ public class User {
 
     public void setPassword(String password) {this.password = password;}
     public String getPassword() {return password;}
+
+    public void setResetPasswordToken(String resetPasswordToken) {this.resetPasswordToken = resetPasswordToken;}
+    public String getResetPasswordToken() {return resetPasswordToken;}
 
     public void setCurrentCourses(List<Current_Course> currentCourses) { this.currentCourses = currentCourses;}
     public List<Current_Course> getCurrentCourses() { return currentCourses;}

@@ -99,7 +99,7 @@ public class GetServices {
         if (claims == null) {
             return null;
         }
-        System.out.println(claims);
+        System.out.println("claims: " + claims);
 
         String adminId = (String) claims.get("id");
         Optional<Admin> adminOptional = adminRepository.findById(adminId);
@@ -110,7 +110,10 @@ public class GetServices {
         Admin admin = adminOptional.get();
         List<Current_Course> currentCourses = admin.getCurrentCourses();
 
-        return currentCourses.stream().map(course -> Map.of(
+        System.out.println("Working");
+
+
+        List<Map<String, Object>> newCourses = currentCourses.stream().map(course -> Map.of(
                 "id", course.getId(),
                 "subject", course.getSubject(),
                 "description", course.getDescription(),
@@ -123,6 +126,10 @@ public class GetServices {
                 "level", course.getSubjectCourse().getLevel(),
                 "username", course.getUsername()
         )).collect(Collectors.toList());
+
+        System.out.println("new courses: " + newCourses);
+
+        return newCourses;
     }
 
 

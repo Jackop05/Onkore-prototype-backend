@@ -16,6 +16,7 @@ public class Admin {
     private String password;
     private String description;
     private String contact;
+    private String resetPasswordToken;
     private List<String> subjectTeachingList;
     // private Image image;
 
@@ -46,6 +47,9 @@ public class Admin {
 
     public void setContact(String contact) {this.contact = contact;}
     public String getContact() {return contact;}
+
+    public void setResetPasswordToken(String resetPasswordToken) {this.resetPasswordToken = resetPasswordToken;}
+    public String getResetPasswordToken() {return resetPasswordToken;}
 
     public void setSubjectTeachingList(List<String> subjectTeachingList) {this.subjectTeachingList = subjectTeachingList;}
     public List<String> getSubjectTeachingList() {return subjectTeachingList;}

@@ -2,6 +2,7 @@ package com.onkore_backend.onkore.Controller;
 
 
 import com.onkore_backend.onkore.Service.Authentification.AuthentificationServices;
+import com.onkore_backend.onkore.Service.Authentification.PasswordResetServices;
 import com.onkore_backend.onkore.Service.Data.DeleteServices;
 import com.onkore_backend.onkore.Service.Data.GetServices;
 import com.onkore_backend.onkore.Service.Data.PostServices;
@@ -31,10 +32,15 @@ public class AdminController {
 
     @Autowired
     private GetServices getServices;
+
     @Autowired
     private PostServices postServices;
+
     @Autowired
     private DeleteServices deleteServices;
+
+    @Autowired
+    private PasswordResetServices passwordResetServices;
 
     @PostMapping("/register-admin")
     public ResponseEntity<Map<String, String>> RegisterAdmin(@RequestBody Map<String, String> body) {
@@ -131,6 +137,7 @@ public class AdminController {
     @GetMapping("/get-admin-current-courses")
     public ResponseEntity<?> getUserCurrentCourses(HttpServletRequest request) {
         try {
+            System.out.println("Working");
             List<Map<String, Object>> courses = getServices.getAdminCurrentCourses(request);
             System.out.println("Courses: " + courses);
             if (courses == null || courses.isEmpty()) {
@@ -199,6 +206,32 @@ public class AdminController {
             return deleteServices.deleteAdminAvailability(body.get("admin_id"), body.get("availability_id"));
         } catch(Exception e) {
             return e.getMessage();
+        }
+    }
+
+    @PostMapping("/create-reset-password-token")
+    public ResponseEntity<?> resetAdminsPasswordClicked(@RequestBody Map<String, String> body) {
+        try {
+            String email = body.get("email");
+            passwordResetServices.resetAdminsPasswordAction(email);
+
+            return ResponseEntity.ok("Reset password token successfully set for user");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Internal server error", "message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetAdminsPassword(@RequestBody Map<String, String> body) {
+        try {
+            String email = body.get("email");
+            String token = body.get("token");
+            String newPassword = body.get("newPassword");
+            passwordResetServices.resetAdminsPassword(email, token, newPassword);
+
+            return ResponseEntity.ok("Reset password token successfully set for user");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Internal server error", "message", e.getMessage()));
         }
     }
 }

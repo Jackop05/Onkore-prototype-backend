@@ -1,6 +1,7 @@
 package com.onkore_backend.onkore.Controller;
 
 import com.onkore_backend.onkore.Service.Authentification.AuthentificationServices;
+import com.onkore_backend.onkore.Service.Authentification.PasswordResetServices;
 import com.onkore_backend.onkore.Service.Data.GetServices;
 import com.onkore_backend.onkore.Service.Data.PostServices;
 import com.onkore_backend.onkore.Util.JsonFormatter;
@@ -26,6 +27,9 @@ public class UserController {
 
     @Autowired
     private PostServices postServices;
+
+    @Autowired
+    private PasswordResetServices passwordResetServices;
 
     @PostMapping("/register-user")
     public ResponseEntity<Map<String, String>> registerUser(@RequestBody Map<String, String> body) {
@@ -116,12 +120,15 @@ public class UserController {
     @PostMapping("/post-course")
     public ResponseEntity<Map<String, String>> postCourse(@RequestBody Map<String, String> body) {
         Map<String, String> response = new HashMap<>();
+        System.out.println("Working");
         try {
-            String userId = body.get("user_id");
+            String username = body.get("username");
             String courseId = body.get("course_id");
             String datesString = body.get("dates");
             String bonusInfo = body.get("bonus_info");
             String promoCode = body.get("promo_code");
+
+            System.out.println(username + " " + courseId + " " + datesString + " " + bonusInfo);
 
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm");
             List<Date> dateList = JsonFormatter.convertStringToList(datesString, dateStr -> {
@@ -132,7 +139,9 @@ public class UserController {
                 }
             });
 
-            postServices.postCourse(userId, courseId, dateList, bonusInfo);
+            System.out.println(username + " " + courseId + " " + dateList + " " + bonusInfo);
+
+            postServices.postCourse(username, courseId, dateList, bonusInfo);
 
             response.put("message", "Course posted successfully");
             return ResponseEntity.ok(response); // ✅ Returns JSON response
@@ -143,4 +152,30 @@ public class UserController {
         }
     }
 
+    @PostMapping("/create-reset-password-token")
+    public ResponseEntity<?> resetUsersPasswordClicked(@RequestBody Map<String, String> body) {
+        try {
+            String email = body.get("email");
+            passwordResetServices.resetUsersPasswordAction(email);
+
+            // Return reset token in the response
+            return ResponseEntity.ok("Reset password token successfully set for user");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Internal server error", "message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetUsersPassword(@RequestBody Map<String, String> body) {
+        try {
+            String email = body.get("email");
+            String token = body.get("token");
+            String newPassword = body.get("newPassword");
+            passwordResetServices.resetUsersPassword(email, token, newPassword);
+
+            return ResponseEntity.ok("Reset password token successfully set for user");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Internal server error", "message", e.getMessage()));
+        }
+    }
 }
