@@ -105,21 +105,58 @@ public class PostServices {
     }
 
 
-    public void handleNewCourse(String course_id, String adminId) {
-        Current_Course currentCourse = currentCourseRepository.findById(course_id)
+    public void handleNewCourse(String courseId, String adminId) {
+        Current_Course currentCourse = currentCourseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("No current_course with given id found in database"));
 
         Admin admin = adminRepository.findById(adminId)
-                .orElseThrow(() -> new RuntimeException("No admin found with the given username"));
+                .orElseThrow(() -> new RuntimeException("No admin found with the given id"));
+
+        User user = (User) userRepository.findByUsername(currentCourse.getUsername())
+                .orElseThrow(() -> new RuntimeException("No user found with the given username"));
 
         if (admin.getCurrentCourses() == null) {
             admin.setCurrentCourses(new ArrayList<>());
         }
+
+        Current_Course courseToRemove = null;
+
+        // Check if the admin already has a course with the same subject and username
+        for (Current_Course existingCourse : admin.getCurrentCourses()) {
+            if (existingCourse.getSubjectCourse().getId().equals(currentCourse.getSubjectCourse().getId())
+                    && existingCourse.getUsername().equals(currentCourse.getUsername())) {
+
+                // Ensure lesson lists are initialized
+                if (existingCourse.getLessonDates() == null) {
+                    existingCourse.setLessonDates(new ArrayList<>());
+                }
+                if (currentCourse.getLessonDates() != null) {
+                    existingCourse.getLessonDates().addAll(currentCourse.getLessonDates());
+                }
+
+                courseToRemove = currentCourse;  // Mark for removal
+                break;
+            }
+        }
+
+        if (courseToRemove != null) {
+            admin.getCurrentCourses().remove(courseToRemove);
+            user.getCurrentCourses().remove(courseToRemove);
+            adminRepository.save(admin);
+            userRepository.save(user);
+            currentCourseRepository.deleteById(courseId);
+            return;
+        }
+
+        // If no existing course was found, add as a new course
         admin.getCurrentCourses().add(currentCourse);
         adminRepository.save(admin);
 
-        newCourseRepository.deleteById(course_id);
+        // Remove from new_courses collection
+        newCourseRepository.deleteById(courseId);
     }
+
+
 
 
     public void changeCourse(String course_id, String admin1Username, String admin1Email, String admin2Username, String admin2Email) {
