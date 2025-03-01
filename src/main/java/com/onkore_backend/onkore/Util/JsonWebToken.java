@@ -24,6 +24,8 @@ public class JsonWebToken {
     private static String jwtName = "jwt_auth_token";
 
     public static String generateUserToken(String id, String username, String email, String role) {
+        System.out.println("New date to see: " + new Date(System.currentTimeMillis() + EXPIRATION_TIME));
+
         return Jwts.builder()
                 .setSubject(username)
                 .claim("id", id)
@@ -31,7 +33,7 @@ public class JsonWebToken {
                 .claim("email", email)
                 .claim("role", role)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 86400000))
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
                 .compact();
     }
@@ -45,8 +47,6 @@ public class JsonWebToken {
                         "hourEnd", item.getHourEnd().toString()
                 ))
                 .collect(Collectors.toList());
-
-        System.out.println("New date to see: " + new Date(System.currentTimeMillis() + EXPIRATION_TIME));
 
         return Jwts.builder()
                 .setSubject(username)
