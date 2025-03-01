@@ -7,6 +7,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
@@ -19,6 +20,8 @@ import java.util.stream.Collectors;
 public class JsonWebToken {
     private static final String SECRET_KEY = "SecretKeyWithMoreLettersAndMoreWordsIncluded123456789";
     private static final long EXPIRATION_TIME = 86400000;
+
+    private static String jwtName = "jwt_auth_token";
 
     public static String generateUserToken(String id, String username, String email, String role) {
         return Jwts.builder()
@@ -65,7 +68,7 @@ public class JsonWebToken {
         // Extract JWT token from cookies
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if ("jwt_auth_token".equals(cookie.getName())) {
+                if (jwtName.equals(cookie.getName())) {
                     jwtToken = cookie.getValue();
                     break; // Exit loop once the token is found
                 }
@@ -92,7 +95,7 @@ public class JsonWebToken {
 
 
     public static void setJwtCookie(HttpServletResponse response, String jwtToken) {
-        Cookie jwtCookie = new Cookie("jwt_auth_token", jwtToken);
+        Cookie jwtCookie = new Cookie(jwtName, jwtToken);
 
         jwtCookie.setHttpOnly(true);
         jwtCookie.setSecure(true);
@@ -103,7 +106,7 @@ public class JsonWebToken {
     }
 
     public static void deleteJwtCookie(HttpServletResponse response) {
-        Cookie jwtCookie = new Cookie("jwt_auth_token", null);
+        Cookie jwtCookie = new Cookie(jwtName, null);
         jwtCookie.setHttpOnly(true);
         jwtCookie.setSecure(true);
         jwtCookie.setPath("/");
