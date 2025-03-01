@@ -46,6 +46,8 @@ public class JsonWebToken {
                 ))
                 .collect(Collectors.toList());
 
+        System.out.println("New date to see: " + new Date(System.currentTimeMillis() + EXPIRATION_TIME));
+
         return Jwts.builder()
                 .setSubject(username)
                 .claim("id", id)
