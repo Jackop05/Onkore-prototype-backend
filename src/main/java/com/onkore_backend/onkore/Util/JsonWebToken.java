@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 public class JsonWebToken {
     private static final String SECRET_KEY = "SecretKeyWithMoreLettersAndMoreWordsIncluded123456789";
-    private static final long EXPIRATION_TIME = 152800000;
+    private static final long EXPIRATION_TIME = 86400000;
 
     private static String jwtName = "jwt_auth_token";
 
@@ -31,7 +31,7 @@ public class JsonWebToken {
                 .claim("email", email)
                 .claim("role", role)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .setExpiration(new Date(System.currentTimeMillis() + 86400000))
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
                 .compact();
     }
