@@ -11,10 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.Instant;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class JsonWebToken {
@@ -24,7 +22,15 @@ public class JsonWebToken {
     private static String jwtName = "jwt_auth_token";
 
     public static String generateUserToken(String id, String username, String email, String role) {
-        System.out.println("New date to see: " + new Date(System.currentTimeMillis() + EXPIRATION_TIME));
+        long expirationMillis = System.currentTimeMillis() + EXPIRATION_TIME;
+
+        // Convert to UTC explicitly
+        Date expirationDate = Date.from(Instant.ofEpochMilli(expirationMillis));
+
+        // Debugging: Log with explicit UTC formatting
+        SimpleDateFormat utcFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
+        utcFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        System.out.println("UTC Expiration Time: " + utcFormat.format(expirationDate));
 
         return Jwts.builder()
                 .setSubject(username)
@@ -33,7 +39,7 @@ public class JsonWebToken {
                 .claim("email", email)
                 .claim("role", role)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .setExpiration(expirationDate)  // Use explicitly set UTC time
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
                 .compact();
     }
