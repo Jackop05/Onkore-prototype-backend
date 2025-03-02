@@ -99,6 +99,9 @@ public class JsonWebToken {
     public static void setJwtCookie(HttpServletResponse response, String jwtToken) {
         Cookie jwtCookie = new Cookie(jwtName, jwtToken);
 
+        System.out.println(jwtToken);
+        System.out.println(jwtCookie.getValue());
+
         jwtCookie.setHttpOnly(true);
         jwtCookie.setSecure(true);
         jwtCookie.setPath("/");
