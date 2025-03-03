@@ -32,7 +32,7 @@ public class JsonWebToken {
         utcFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         System.out.println("UTC Expiration Time: " + utcFormat.format(expirationDate));
 
-        return Jwts.builder()
+        String token = Jwts.builder()
                 .setSubject(username)
                 .claim("id", id)
                 .claim("username", username)
@@ -42,6 +42,9 @@ public class JsonWebToken {
                 .setExpiration(expirationDate)  // Use explicitly set UTC time
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
                 .compact();
+
+        System.out.println(token);
+        return token;
     }
 
     public static String generateAdminToken(String id, String username, String email, String description, String contact, List<Availability> availability, List<Current_Course> currentCourses, List<New_Course> newCourses, String role) {
@@ -111,7 +114,7 @@ public class JsonWebToken {
         jwtCookie.setHttpOnly(true);
         jwtCookie.setSecure(true);
         jwtCookie.setPath("/");
-        jwtCookie.setMaxAge(3600);
+        jwtCookie.setMaxAge(-1);
 
         response.addCookie(jwtCookie);
     }
