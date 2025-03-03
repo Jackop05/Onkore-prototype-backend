@@ -109,6 +109,7 @@ public class UserController {
         System.out.println(request);
         try {
             Map<String, Object> userData = getServices.getUserData(request);
+            System.out.println("User data: " + userData);
             if (userData == null || userData.isEmpty()) {
                 return ResponseEntity.status(404).body(Map.of("error", "User not found"));
             }
