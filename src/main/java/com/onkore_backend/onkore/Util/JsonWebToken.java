@@ -79,6 +79,7 @@ public class JsonWebToken {
         // Extract JWT token from cookies
         if (cookies != null) {
             for (Cookie cookie : cookies) {
+                System.out.println("Cookie to compare: " + jwtName + " and " + cookie.getName());
                 if (jwtName.equals(cookie.getName())) {
                     jwtToken = cookie.getValue();
                     break; // Exit loop once the token is found
