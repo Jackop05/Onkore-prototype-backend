@@ -106,6 +106,7 @@ public class UserController {
 
     @GetMapping("/get-user-data")
     public ResponseEntity<?> getUserData(HttpServletRequest request) {
+        System.out.println(request);
         try {
             Map<String, Object> userData = getServices.getUserData(request);
             if (userData == null || userData.isEmpty()) {
