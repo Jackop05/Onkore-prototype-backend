@@ -57,21 +57,33 @@ public class GetServices {
 
 
     public static Map<String, Object> getUserData(HttpServletRequest request) {
+        System.out.println("getUserData() called");
+
         Claims claims = getTokenDataFromCookie(request);
 
         if (claims != null) {
+            System.out.println("JWT Claims found:");
+            System.out.println("ID: " + claims.get("id"));
+            System.out.println("Username: " + claims.get("username"));
+            System.out.println("Email: " + claims.get("email"));
+            System.out.println("Current Courses: " + claims.get("currentCourses"));
+            System.out.println("Role: " + claims.get("role"));
+
             Map<String, Object> studentData = new HashMap<>();
             studentData.put("id", claims.get("id"));
             studentData.put("username", claims.get("username"));
             studentData.put("email", claims.get("email"));
             studentData.put("currentCourses", claims.get("currentCourses"));
-            System.out.println(studentData.get("currentCourses"));
             studentData.put("role", claims.get("role"));
+
+            System.out.println("User Data Map: " + studentData);
             return studentData;
         } else {
+            System.out.println("No valid JWT claims found.");
             return null;
         }
     }
+
 
     public List<Map<String, Object>> getUserCurrentCourses(HttpServletRequest request) {
         Claims claims = getTokenDataFromCookie(request);
