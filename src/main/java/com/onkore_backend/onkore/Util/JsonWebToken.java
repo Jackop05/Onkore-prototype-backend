@@ -113,8 +113,9 @@ public class JsonWebToken {
         System.out.println(jwtCookie.getValue());
 
         jwtCookie.setHttpOnly(true);
-        jwtCookie.setSecure(true);
+        jwtCookie.setSecure(true); // Required for HTTPS
         jwtCookie.setPath("/");
+        jwtCookie.setDomain("onkore.pl");
         jwtCookie.setMaxAge(-1);
 
         response.addCookie(jwtCookie);
@@ -122,9 +123,11 @@ public class JsonWebToken {
 
     public static void deleteJwtCookie(HttpServletResponse response) {
         Cookie jwtCookie = new Cookie(jwtName, null);
+
         jwtCookie.setHttpOnly(true);
-        jwtCookie.setSecure(true);
+        jwtCookie.setSecure(true); // Required for HTTPS
         jwtCookie.setPath("/");
+        jwtCookie.setDomain("onkore.pl");
         jwtCookie.setMaxAge(0);
 
         response.addCookie(jwtCookie);
