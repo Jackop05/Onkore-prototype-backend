@@ -116,6 +116,7 @@ public class JsonWebToken {
         jwtCookie.setSecure(true); // Required for HTTPS
         jwtCookie.setPath("/");
         jwtCookie.setDomain("onkore.pl");
+        jwtCookie.setAttribute("SameSite", "None");
         jwtCookie.setMaxAge(-1);
 
         response.addCookie(jwtCookie);
@@ -128,6 +129,7 @@ public class JsonWebToken {
         jwtCookie.setSecure(true); // Required for HTTPS
         jwtCookie.setPath("/");
         jwtCookie.setDomain("onkore.pl");
+        jwtCookie.setAttribute("SameSite", "None");
         jwtCookie.setMaxAge(0);
 
         response.addCookie(jwtCookie);
