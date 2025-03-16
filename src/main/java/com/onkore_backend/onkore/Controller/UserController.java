@@ -94,7 +94,7 @@ public class UserController {
     }
 
 
-    @PostMapping("/logout-user")
+    @GetMapping("/logout-user")
     public String loginUser(HttpServletResponse response) {
         try {
             getAuthServices.LogoutUser(response);
