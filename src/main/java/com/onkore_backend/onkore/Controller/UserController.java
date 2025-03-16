@@ -48,7 +48,9 @@ public class UserController {
     @PostMapping("/login-user")
     public ResponseEntity<Map<String, String>> loginUser(@RequestBody Map<String, String> body, HttpServletResponse response) {
         try {
+            System.out.println("Working here");
             getAuthServices.LoginUser(body.get("email"), body.get("password"), response);
+            System.out.println("Done here");
             return ResponseEntity.ok(Collections.singletonMap("message", "Zalogowano pomyślnie użytkownika"));
         } catch (IllegalArgumentException e) {
             // Return HTTP 401 if authentication fails (e.g., wrong password or non-existing account)

@@ -130,7 +130,7 @@ public class JsonWebToken {
         jwtCookie.setPath("/");
         jwtCookie.setDomain("onkore.pl");
         jwtCookie.setAttribute("SameSite", "None");
-        jwtCookie.setMaxAge(0);
+        jwtCookie.setMaxAge(-1);
 
         response.addCookie(jwtCookie);
     }
