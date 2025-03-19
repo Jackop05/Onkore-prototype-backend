@@ -10,7 +10,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("https://onkore.pl", "https://www.onkore.pl", "http://localhost:5173") // Allow only frontend
+                .allowedOrigins("https://onkore.pl", "https://www.onkore.pl", "http://localhost:5173", "*") // Allow only frontend
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true); // Must be true for cookies
