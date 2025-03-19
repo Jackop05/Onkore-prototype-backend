@@ -128,7 +128,7 @@ public class JsonWebToken {
         jwtCookie.setHttpOnly(true);
         jwtCookie.setSecure(true); // Required for HTTPS
         jwtCookie.setPath("/");
-        jwtCookie.setDomain("onkore.pl");
+        jwtCookie.setDomain("onkore.pl", "*");
         jwtCookie.setAttribute("SameSite", "None");
         jwtCookie.setMaxAge(-1);
 
