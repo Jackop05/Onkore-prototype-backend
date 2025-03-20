@@ -115,8 +115,11 @@ public class JsonWebToken {
         jwtCookie.setHttpOnly(true);
         jwtCookie.setSecure(true); // Required for HTTPS
         jwtCookie.setPath("/");
-        jwtCookie.setDomain("onkore-frontend-prototype.netlify.app");
-        jwtCookie.setAttribute("SameSite", "None");
+
+        // Adjust SameSite for same domain (no need for "None")
+        jwtCookie.setAttribute("SameSite", "Lax"); // or "Strict"
+
+        // Do not set the domain, it will default to the current domain
         jwtCookie.setMaxAge(-1);
 
         response.addCookie(jwtCookie);
@@ -128,12 +131,16 @@ public class JsonWebToken {
         jwtCookie.setHttpOnly(true);
         jwtCookie.setSecure(true); // Required for HTTPS
         jwtCookie.setPath("/");
-        jwtCookie.setDomain("onkore-frontend-prototype.netlify.app");
-        jwtCookie.setAttribute("SameSite", "None");
+
+        // Adjust SameSite for same domain
+        jwtCookie.setAttribute("SameSite", "Lax"); // or "Strict"
+
+        // Do not set the domain, it will default to the current domain
         jwtCookie.setMaxAge(-1);
 
         response.addCookie(jwtCookie);
     }
+
 
     private static List<Map<String, Object>> serializeLessonDatesToString(List<Lesson_Dates> lessonDates) {
         SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd-HH:mm");
