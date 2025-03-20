@@ -116,11 +116,14 @@ public class JsonWebToken {
         jwtCookie.setSecure(true); // Required for HTTPS
         jwtCookie.setPath("/");
 
+        // Set domain to ".onkore-api.xyz" to allow the cookie across subdomains
+        jwtCookie.setDomain(".onkore-api.xyz");
+
         // Adjust SameSite for same domain (no need for "None")
         jwtCookie.setAttribute("SameSite", "Lax"); // or "Strict"
 
-        // Do not set the domain, it will default to the current domain
-        jwtCookie.setMaxAge(-1);
+        // Do not set the max age to -1; set it according to your requirement for session expiration
+        jwtCookie.setMaxAge(3600); // Example: 1 hour expiration (adjust as needed)
 
         response.addCookie(jwtCookie);
     }
@@ -132,14 +135,18 @@ public class JsonWebToken {
         jwtCookie.setSecure(true); // Required for HTTPS
         jwtCookie.setPath("/");
 
+        // Set domain to ".onkore-api.xyz" to remove the cookie across subdomains
+        jwtCookie.setDomain(".onkore-api.xyz");
+
         // Adjust SameSite for same domain
         jwtCookie.setAttribute("SameSite", "Lax"); // or "Strict"
 
-        // Do not set the domain, it will default to the current domain
-        jwtCookie.setMaxAge(-1);
+        // Set the max age to 0 to delete the cookie
+        jwtCookie.setMaxAge(0); // Cookie will be deleted
 
         response.addCookie(jwtCookie);
     }
+
 
 
     private static List<Map<String, Object>> serializeLessonDatesToString(List<Lesson_Dates> lessonDates) {
