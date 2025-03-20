@@ -117,7 +117,7 @@ public class JsonWebToken {
         jwtCookie.setPath("/");
 
         // Set domain to ".onkore-api.xyz" to allow the cookie across subdomains
-        jwtCookie.setDomain(".onkore-api.xyz");
+        jwtCookie.setDomain("www.onkore-api.xyz");
 
         // Adjust SameSite for same domain (no need for "None")
         jwtCookie.setAttribute("SameSite", "Lax"); // or "Strict"
@@ -136,7 +136,7 @@ public class JsonWebToken {
         jwtCookie.setPath("/");
 
         // Set domain to ".onkore-api.xyz" to remove the cookie across subdomains
-        jwtCookie.setDomain(".onkore-api.xyz");
+        jwtCookie.setDomain("www.onkore-api.xyz");
 
         // Adjust SameSite for same domain
         jwtCookie.setAttribute("SameSite", "Lax"); // or "Strict"
