@@ -14,7 +14,7 @@ import java.util.List;
 public class MongoConfig {
 
     @Value("${spring.data.mongodb.uri}")
-    private String mongoUri;
+    private String mongoUri;  // mongo uri
 
     @Bean
     public MongoClient mongoClient() {
