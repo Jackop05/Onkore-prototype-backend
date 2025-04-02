@@ -50,18 +50,14 @@ public class AuthentificationServices {
         if (email == null || password == null) {
             return ResponseEntity.status(401).body("Invalid email or password");
         }
-        System.out.println("working 2");
         User user = (User) userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User with email not found"));
 
-        System.out.println("working 3");
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("Invalid password");
         }
 
-        System.out.println("working 4");
         String token = JsonWebToken.generateUserToken(user.getId(), user.getUsername(), user.getEmail(), "user");
-        System.out.println("working 5");
         JsonWebToken.setJwtCookie(response, token);
 
         return null;
