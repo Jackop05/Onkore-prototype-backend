@@ -23,6 +23,7 @@ public class JsonWebToken {
 
     public static String generateUserToken(String id, String username, String email, String role) {
         long expirationMillis = System.currentTimeMillis() + EXPIRATION_TIME;
+        System.out.println("working 6");
 
         // Convert to UTC explicitly
         Date expirationDate = Date.from(Instant.ofEpochMilli(expirationMillis));
@@ -31,6 +32,7 @@ public class JsonWebToken {
         SimpleDateFormat utcFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
         utcFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         System.out.println("UTC Expiration Time: " + utcFormat.format(expirationDate));
+        System.out.println("working 7");
 
         String token = Jwts.builder()
                 .setSubject(username)
@@ -42,6 +44,8 @@ public class JsonWebToken {
                 .setExpiration(expirationDate)  // Use explicitly set UTC time
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
                 .compact();
+
+        System.out.println("working82");
 
         System.out.println(token);
         return token;
