@@ -158,6 +158,7 @@ public class GetServices {
         if (courseOptional.isEmpty()) {
             return null;
         }
+        System.out.println(courseOptional.get());
 
         Current_Course course = courseOptional.get();
         Map courseInfo = Map.of(
