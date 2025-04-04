@@ -161,7 +161,40 @@ public class GetServices {
         System.out.println(courseOptional.get());
 
         Current_Course course = courseOptional.get();
-        Map courseInfo = Map.of(
+        // Print basic course info
+        System.out.println("Course ID: " + course.getId());
+        System.out.println("Subject: " + course.getSubject());
+        System.out.println("Description: " + course.getDescription());
+
+// Print lesson dates
+        System.out.println("\nLesson Dates:");
+        course.getLessonDates().forEach(lesson -> {
+            System.out.println("  Lesson ID: " + lesson.getId());
+            System.out.println("  Date: " + lesson.getLessonDate());
+            System.out.println("  Status: " + lesson.getStatus());
+            System.out.println("  Link: " + lesson.getLink());
+            System.out.println("  ---");
+        });
+
+// Print level (with null check)
+        System.out.println("\nCourse Level:");
+        if (course.getSubjectCourse() != null) {
+            System.out.println("  Level: " + course.getSubjectCourse().getLevel());
+        } else {
+            System.out.println("  Level: NULL (SubjectCourse not set)");
+        }
+
+// Print materials
+        System.out.println("\nMaterials:");
+        course.getMaterials().forEach(material -> {
+            System.out.println("  Material ID: " + material.getId());
+            System.out.println("  Filename: " + material.getOriginalFilename());
+            System.out.println("  Path: " + material.getFilePath());
+            System.out.println("  ---");
+        });
+
+// Now build the map (unchanged from your original)
+        Map<String, Object> courseInfo = Map.of(
                 "id", course.getId(),
                 "subject", course.getSubject(),
                 "description", course.getDescription(),
@@ -170,13 +203,13 @@ public class GetServices {
                         "lessonDate", lesson.getLessonDate(),
                         "status", lesson.getStatus(),
                         "link", lesson.getLink()
-                )).collect(Collectors.toList()), // Convert lessonDates to detailed objects
-                "level", course.getSubjectCourse().getLevel(),
+                )).collect(Collectors.toList()),
+                "level", course.getSubjectCourse() != null ? course.getSubjectCourse().getLevel() : null,
                 "materials", course.getMaterials().stream().map(material -> Map.of(
                         "filename", material.getOriginalFilename(),
                         "path", material.getFilePath(),
                         "id", material.getId()
-                ))
+                )).collect(Collectors.toList())
         );
 
         return courseInfo;
